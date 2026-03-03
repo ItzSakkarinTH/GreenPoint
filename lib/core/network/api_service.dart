@@ -87,4 +87,47 @@ class ApiService {
   Future<void> logout() async {
     await _storage.delete(key: 'jwt_token');
   }
+
+  // ดึงข้อมูลร้านค้าทั้งหมด
+  Future<List<dynamic>> getShops() async {
+    try {
+      final response = await _dio.get('/shops');
+      return response.data;
+    } catch (e) {
+      print('❌ Fetch Shops Error: $e');
+      rethrow;
+    }
+  }
+  // ดึงข้อมูลโปรไฟล์ผู้ใช้
+  Future<Map<String, dynamic>> getUserProfile() async {
+    try {
+      final response = await _dio.get('/auth/me'); // เปลี่ยนเป็น endpoint จริง (ปกติคือ /auth/me หรือ /profile)
+      return response.data;
+    } catch (e) {
+      print('❌ Fetch Profile Error: $e');
+      rethrow;
+    }
+  }
+
+  // ดึงประวัติธุรกรรม
+  Future<List<dynamic>> getTransactionHistory() async {
+    try {
+      final response = await _dio.get('/transactions/history');
+      return response.data;
+    } catch (e) {
+      print('❌ Fetch History Error: $e');
+      rethrow;
+    }
+  }
+
+  // ดึงสินค้าแยกตามร้าน
+  Future<List<dynamic>> getProducts(String shopId) async {
+    try {
+      final response = await _dio.get('/products', queryParameters: {'shopId': shopId});
+      return response.data;
+    } catch (e) {
+      print('❌ Fetch Products Error: $e');
+      rethrow;
+    }
+  }
 }

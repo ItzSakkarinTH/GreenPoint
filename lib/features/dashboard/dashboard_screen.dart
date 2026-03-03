@@ -3,6 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:io';
 
 import '../../core/providers/auth_provider.dart';
+import '../../core/providers/shop_provider.dart';
+import 'partner_store_tab.dart';
+import 'profile_tab.dart';
+import 'product_list_screen.dart';
 
 // กำหนดโทนสีตามดีไซน์ใหม่
 const Color primaryGreen = Color(0xFF2E7D32);
@@ -70,8 +74,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     switch (_currentIndex) {
       case 0:
         return const _HomeTab();
+      case 1:
+        return const PartnerStoreTab();
       case 3:
-        return _ProfileTab();
+        return const ProfileTab();
       default:
         return const Center(child: Text('Coming Soon'));
     }
@@ -114,11 +120,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 }
 
-class _HomeTab extends StatelessWidget {
+class _HomeTab extends ConsumerWidget {
   const _HomeTab();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final shopsAsync = ref.watch(shopsProvider);
+
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.all(20),
@@ -150,7 +158,7 @@ class _HomeTab extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Empty Placeholder (Matching the white box in design)
+          // Empty Placeholder
           Container(
             height: 80,
             decoration: BoxDecoration(
@@ -181,16 +189,29 @@ class _HomeTab extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: Row(
-              children: [
-                _buildStoreCard('ร้าน A', '10 km'),
-                _buildStoreCard('ร้าน B', '14 km'),
-                _buildStoreCard('ร้าน C', '50 km'),
-              ],
+          shopsAsync.when(
+            data: (shops) => SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children: shops.isEmpty 
+                  ? [const Text('ยังไม่มีข้อมูลร้านค้า')]
+                  : shops.map((shop) => GestureDetector(
+                      onTap: () {
+                        ref.read(selectedShopIdProvider.notifier).state = shop.shopId;
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProductListScreen(shopId: shop.shopId),
+                          ),
+                        );
+                      },
+                      child: _buildStoreCard(shop.name, shop.address ?? 'ใกล้คุณ'),
+                    )).toList(),
+              ),
             ),
+            loading: () => const Center(child: CircularProgressIndicator(color: primaryGreen)),
+            error: (err, _) => Text('Error: $err'),
           ),
         ],
       ),
@@ -279,26 +300,6 @@ class _HomeTab extends StatelessWidget {
           Text(
             distance,
             style: const TextStyle(color: greyText, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ProfileTab extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text('Profile', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () => ref.read(authProvider.notifier).logout(),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Logout', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
