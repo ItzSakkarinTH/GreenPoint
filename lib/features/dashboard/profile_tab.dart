@@ -59,18 +59,34 @@ class ProfileTab extends ConsumerWidget {
             children: [
               // User Info
               const CircleAvatar(
-                radius: 50,
-                backgroundColor: Color(0xFFF5F5F5),
-                child: Icon(Icons.person, size: 60, color: Colors.grey),
+                radius: 55,
+                backgroundColor: Color(0xFFE8F5E9),
+                child: Icon(Icons.person, size: 70, color: primaryGreen),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               Text(
-                profile.name,
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                profile.name.isEmpty ? 'สมาชิก GreenPoint' : profile.name,
+                style: const TextStyle(
+                  fontSize: 26, 
+                  fontWeight: FontWeight.w900, 
+                  color: primaryGreen,
+                ),
               ),
-              Text(
-                'Level ${profile.level}',
-                style: const TextStyle(color: Colors.grey, fontSize: 16),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: secondaryGreen.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  'LV.${profile.level} Green Ambassador',
+                  style: const TextStyle(
+                    color: secondaryGreen,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
               ),
               const SizedBox(height: 12),
               

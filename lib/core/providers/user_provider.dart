@@ -4,15 +4,31 @@ import '../models/user_model.dart';
 
 final userProfileProvider = FutureProvider.autoDispose<UserProfile>((ref) async {
   final apiService = ref.watch(apiServiceProvider);
-  final data = await apiService.getUserProfile();
-  
-  return UserProfile(
-    name: data['name'] ?? 'Unknown User',
-    level: data['level'] ?? 1,
-    currentXp: data['currentXp'] ?? 0,
-    maxXp: data['maxXp'] ?? 100,
-    plasticReduced: data['plasticReduced'] ?? 0,
-  );
+  try {
+    final responseData = await apiService.getUserProfile();
+    print('👤 User Profile Data: $responseData'); // Debug log
+
+    // ลองดึง User Data จากหลายๆ รูปแบบ (top level, user, หรือ data)
+    final userData = responseData['user'] ?? responseData['data'] ?? responseData;
+    
+    // พยายามหาชื่อที่จะแสดงผล โดยเรียงลำดับความสำคัญ
+    final displayName = userData['name'] ?? 
+                      userData['fullName'] ?? 
+                      userData['username'] ?? 
+                      responseData['username'] ?? // กรณี username อยู่ชั้นนอกสุด
+                      'สมาชิก GreenPoint';
+    
+    return UserProfile(
+      name: displayName,
+      level: userData['level'] ?? 1,
+      currentXp: userData['currentXp'] ?? 0,
+      maxXp: userData['maxXp'] ?? 100,
+      plasticReduced: userData['plasticReduced'] ?? 0,
+    );
+  } catch (e) {
+    print('❌ Error in userProfileProvider: $e');
+    rethrow;
+  }
 });
 
 final historyProvider = FutureProvider.autoDispose<List<Transaction>>((ref) async {
