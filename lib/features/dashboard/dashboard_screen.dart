@@ -7,6 +7,7 @@ import '../../core/providers/shop_provider.dart';
 import 'partner_store_tab.dart';
 import 'profile_tab.dart';
 import 'product_list_screen.dart';
+import 'shop_detail_screen.dart';
 
 // กำหนดโทนสีตามดีไซน์ใหม่
 const Color primaryGreen = Color(0xFF2E7D32);
@@ -202,7 +203,7 @@ class _HomeTab extends ConsumerWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ProductListScreen(shopId: shop.shopId),
+                            builder: (context) => ShopDetailScreen(shop: shop),
                           ),
                         );
                       },
