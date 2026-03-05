@@ -8,8 +8,13 @@ final apiServiceProvider = Provider((ref) => ApiService());
 
 final shopsProvider = FutureProvider<List<Shop>>((ref) async {
   final apiService = ref.watch(apiServiceProvider);
-  final data = await apiService.getShops();
-  return data.map((json) => Shop.fromJson(json)).toList();
+  final responseData = await apiService.getShops();
+  
+  final list = responseData is Map 
+      ? (responseData['data'] ?? responseData['shops'] ?? []) 
+      : (responseData as List);
+      
+  return (list as List).map((json) => Shop.fromJson(json)).toList();
 });
 
 final selectedShopIdProvider = NotifierProvider<SelectedShopNotifier, String?>(() {
@@ -25,6 +30,12 @@ class SelectedShopNotifier extends Notifier<String?> {
 
 final productsProvider = FutureProvider.family<List<Product>, String>((ref, shopId) async {
   final apiService = ref.watch(apiServiceProvider);
-  final data = await apiService.getProducts(shopId);
-  return data.map((json) => Product.fromJson(json)).toList();
+  final responseData = await apiService.getProducts(shopId);
+  
+  // Handle wrapped responses (e.g., { "data": [...] } or { "products": [...] })
+  final list = responseData is Map 
+      ? (responseData['data'] ?? responseData['products'] ?? []) 
+      : (responseData as List);
+      
+  return (list as List).map((json) => Product.fromJson(json)).toList();
 });

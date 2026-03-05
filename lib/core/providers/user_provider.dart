@@ -1,5 +1,7 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'shop_provider.dart'; // ใช้ apiServiceProvider จากที่นี่
+import 'auth_provider.dart';
 import '../models/user_model.dart';
 
 final userProfileProvider = FutureProvider.autoDispose<UserProfile>((ref) async {
@@ -25,6 +27,13 @@ final userProfileProvider = FutureProvider.autoDispose<UserProfile>((ref) async 
       maxXp: userData['maxXp'] ?? 100,
       plasticReduced: userData['plasticReduced'] ?? 0,
     );
+  } on DioException catch (e) {
+    if (e.response?.statusCode == 401) {
+      print('🔐 Unauthorized access (401), logging out...');
+      ref.read(authProvider.notifier).logout();
+    }
+    print('❌ Error in userProfileProvider: $e');
+    rethrow;
   } catch (e) {
     print('❌ Error in userProfileProvider: $e');
     rethrow;

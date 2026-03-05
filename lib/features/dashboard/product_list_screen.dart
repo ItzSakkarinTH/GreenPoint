@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/shop_provider.dart';
 import '../../core/models/product_model.dart';
+import 'product_detail_screen.dart';
 
 const Color primaryGreen = Color(0xFF2E7D32);
 const Color secondaryGreen = Color(0xFF4CAF50);
@@ -30,13 +31,13 @@ class ProductListScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(16),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  childAspectRatio: 0.7,
+                  childAspectRatio: 0.75,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
                 ),
                 itemCount: products.length,
                 itemBuilder: (context, index) {
-                  return _buildProductCard(products[index]);
+                  return _buildProductCard(context, products[index]);
                 },
               ),
         loading: () => const Center(child: CircularProgressIndicator(color: primaryGreen)),
@@ -54,7 +55,7 @@ class ProductListScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'กรุณาตรวจสอบการเชื่อมต่อ หรือเลือกรา้นใหม่อีกครั้ง',
+                  'กรุณาตรวจสอบการเชื่อมต่อ หรือเลือกร้านใหม่อีกครั้ง',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.grey),
                 ),
@@ -66,7 +67,7 @@ class ProductListScreen extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                  child: const Text('กลับไปเลือกรา้น', style: TextStyle(color: Colors.white)),
+                  child: const Text('กลับไปเลือกร้าน', style: TextStyle(color: Colors.white)),
                 ),
               ],
             ),
@@ -76,84 +77,94 @@ class ProductListScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildProductCard(Product product) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+  Widget _buildProductCard(BuildContext context, Product product) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductDetailScreen(product: product),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Product Image
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                image: product.imageUrl != null
-                    ? DecorationImage(
-                        image: NetworkImage(product.imageUrl!),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product Image
+            Expanded(
+              child: Hero(
+                tag: 'product_${product.id}',
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    image: product.imageUrl != null
+                        ? DecorationImage(
+                            image: NetworkImage(product.imageUrl!),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
+                  child: product.imageUrl == null
+                      ? const Center(child: Icon(Icons.fastfood_outlined, size: 50, color: Colors.grey))
+                      : null,
+                ),
               ),
-              child: product.imageUrl == null
-                  ? const Center(child: Icon(Icons.fastfood_outlined, size: 50, color: Colors.grey))
-                  : null,
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  product.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${product.price.toStringAsFixed(0)} บาท',
-                  style: const TextStyle(
-                    color: primaryGreen,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Logic to add to cart
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: secondaryGreen,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: Colors.black87,
                     ),
-                    child: const Text('เพิ่มสินค้า', style: TextStyle(color: Colors.white, fontSize: 13)),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${product.price.toStringAsFixed(0)} ฿',
+                        style: const TextStyle(
+                          color: primaryGreen,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Text(
+                        'คงเหลือ ${product.stock}',
+                        style: TextStyle(
+                          color: product.stock > 0 ? Colors.grey : Colors.red,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

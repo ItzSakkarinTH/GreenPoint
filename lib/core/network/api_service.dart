@@ -24,8 +24,11 @@ class ApiService {
           final token = await _storage.read(key: 'jwt_token');
           
           if (token != null) {
+            print('🔑 Attaching Token to ${options.path}');
             // แนบ Token ไปกับ Header (Bearer Authorization) อัตโนมัติทุก Request
             options.headers['Authorization'] = 'Bearer $token';
+          } else {
+            print('⚠️ No Token found for ${options.path}');
           }
           return handler.next(options); // ปล่อย Request ผ่านไปทำงานต่อ
         },
@@ -89,7 +92,7 @@ class ApiService {
   }
 
   // ดึงข้อมูลร้านค้าทั้งหมด
-  Future<List<dynamic>> getShops() async {
+  Future<dynamic> getShops() async {
     try {
       final response = await _dio.get('/shops');
       return response.data;
@@ -121,7 +124,7 @@ class ApiService {
   }
 
   // ดึงสินค้าแยกตามร้าน
-  Future<List<dynamic>> getProducts(String shopId) async {
+  Future<dynamic> getProducts(String shopId) async {
     try {
       final response = await _dio.get('/products', queryParameters: {'shopId': shopId});
       return response.data;

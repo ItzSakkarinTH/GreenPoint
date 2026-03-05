@@ -18,12 +18,38 @@ class PartnerStoreTab extends ConsumerWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAF8),
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(130),
+        preferredSize: const Size.fromHeight(180),
         child: Column(
           children: [
-            // Search Bar Area
+            // GreenPoint Branding
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: primaryGreen,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.eco, color: Colors.white, size: 20),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'GreenPoint',
+                    style: TextStyle(
+                      color: primaryGreen,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 22,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            // Search Bar Area
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
