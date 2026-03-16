@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -14,6 +15,7 @@ class ApiService {
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
       responseType: ResponseType.json,
+      validateStatus: (status) => status != null && status < 500,
     ));
 
     // เพิ่ม Interceptor จัดการแนบ Token สมัยใหม่
@@ -91,20 +93,37 @@ class ApiService {
     await _storage.delete(key: 'jwt_token');
   }
 
+  void _checkAndThrowError(Response response, String defaultErrorMsg) {
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      String errorMsg = defaultErrorMsg;
+      if (response.data is Map<String, dynamic>) {
+        errorMsg = response.data['error'] ?? response.data['message'] ?? defaultErrorMsg;
+      } else if (response.data is String && response.data.toString().isNotEmpty) {
+        if (!response.data.toString().trim().startsWith('<')) {
+          errorMsg = response.data;
+        }
+      }
+      throw Exception(errorMsg);
+    }
+  }
+
   // ดึงข้อมูลร้านค้าทั้งหมด
   Future<dynamic> getShops() async {
     try {
       final response = await _dio.get('/shops');
+      _checkAndThrowError(response, 'ดึงข้อมูลร้านค้าล้มเหลว');
       return response.data;
     } catch (e) {
       print('❌ Fetch Shops Error: $e');
       rethrow;
     }
   }
+
   // ดึงข้อมูลโปรไฟล์ผู้ใช้
   Future<Map<String, dynamic>> getUserProfile() async {
     try {
       final response = await _dio.get('/auth/me'); // เปลี่ยนเป็น endpoint จริง (ปกติคือ /auth/me หรือ /profile)
+      _checkAndThrowError(response, 'ดึงข้อมูลโปรไฟล์ล้มเหลว');
       return response.data;
     } catch (e) {
       print('❌ Fetch Profile Error: $e');
@@ -116,6 +135,7 @@ class ApiService {
   Future<List<dynamic>> getTransactionHistory() async {
     try {
       final response = await _dio.get('/transactions/history');
+      _checkAndThrowError(response, 'ดึงข้อมูลประวัติธุรกรรมล้มเหลว');
       return response.data;
     } catch (e) {
       print('❌ Fetch History Error: $e');
@@ -127,6 +147,7 @@ class ApiService {
   Future<dynamic> getProducts(String shopId) async {
     try {
       final response = await _dio.get('/products', queryParameters: {'shopId': shopId});
+      _checkAndThrowError(response, 'ดึงข้อมูลสินค้าล้มเหลว');
       return response.data;
     } catch (e) {
       print('❌ Fetch Products Error: $e');
@@ -137,7 +158,19 @@ class ApiService {
   // ส่งข้อมูล QR Code ไปยัง Backend เพื่อรับคะแนนสะสม
   Future<dynamic> scanQrCode(String qrData) async {
     try {
-      final response = await _dio.post('/transactions/scan', data: {'qrCode': qrData});
+      Map<String, dynamic> data;
+      try {
+        data = jsonDecode(qrData);
+      } catch (_) {
+        throw Exception('รูปแบบของ QR Code ไม่ถูกต้อง');
+      }
+
+      if (data['type'] != 'collect_points') {
+         throw Exception('นี่ไม่ใช่ QR Code สำหรับรับคะแนน');
+      }
+
+      final response = await _dio.post('/transactions/claim', data: data);
+      _checkAndThrowError(response, 'การสแกน QR Code ล้มเหลว');
       return response.data;
     } catch (e) {
       print('❌ Scan QR Code Error: $e');
@@ -149,6 +182,7 @@ class ApiService {
   Future<dynamic> getEvents() async {
     try {
       final response = await _dio.get('/events');
+      _checkAndThrowError(response, 'ดึงข้อมูลอีเว้นท์ล้มเหลว');
       return response.data;
     } catch (e) {
       print('❌ Fetch Events Error: $e');

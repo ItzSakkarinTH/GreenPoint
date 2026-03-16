@@ -26,23 +26,34 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
     try {
       final apiService = ApiService();
       // เรียกใช้งาน API เพื่อสแกน QR Code รับคะแนน (Points)
-      await apiService.scanQrCode(qrData);
+      final result = await apiService.scanQrCode(qrData);
 
       if (!mounted) return;
+      
+      final pointsAwarded = result['pointsAwarded'] ?? 0;
+      final totalPoints = result['totalPoints'] ?? 0;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('สแกนรับคะแนนสำเร็จ!'),
+        SnackBar(
+          content: Text('สแกนรับคะแนนสำเร็จ!\nได้รับ $pointsAwarded คะแนน (รวม: $totalPoints คะแนน)'),
           backgroundColor: Colors.green,
+          duration: const Duration(seconds: 4),
         ),
       );
       
-      // ปิดกล้องหรือกลับหน้าเดิม
-      // Navigator.pop(context); // หากต้องการให้เด้งกลับ หรือแค่ให้กลับมาหน้าหลัก
+      // ปิดกล้องเพื่อกลับหน้าเดิมหลังจากสแกนสำเร็จ (ถ้าต้องการ)
+      // Navigator.pop(context); 
     } catch (e) {
       if (!mounted) return;
+      
+      String errorMsg = e.toString();
+      if (errorMsg.startsWith('Exception: ')) {
+        errorMsg = errorMsg.replaceFirst('Exception: ', '');
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('เกิดข้อผิดพลาด: $e'),
+          content: Text('เกิดข้อผิดพลาด: $errorMsg'),
           backgroundColor: Colors.red,
         ),
       );
