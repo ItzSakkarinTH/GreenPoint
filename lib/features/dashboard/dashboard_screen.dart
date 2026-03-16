@@ -8,6 +8,7 @@ import 'partner_store_tab.dart';
 import 'profile_tab.dart';
 import 'product_list_screen.dart';
 import 'shop_detail_screen.dart';
+import 'scan_screen.dart';
 
 // กำหนดโทนสีตามดีไซน์ใหม่
 const Color primaryGreen = Color(0xFF2E7D32);
@@ -77,6 +78,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         return const _HomeTab();
       case 1:
         return const PartnerStoreTab();
+      case 2:
+        return const ScanScreen();
       case 3:
         return const ProfileTab();
       default:

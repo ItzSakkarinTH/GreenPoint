@@ -133,4 +133,15 @@ class ApiService {
       rethrow;
     }
   }
+
+  // ส่งข้อมูล QR Code ไปยัง Backend เพื่อรับคะแนนสะสม
+  Future<dynamic> scanQrCode(String qrData) async {
+    try {
+      final response = await _dio.post('/transactions/scan', data: {'qrCode': qrData});
+      return response.data;
+    } catch (e) {
+      print('❌ Scan QR Code Error: $e');
+      rethrow;
+    }
+  }
 }
