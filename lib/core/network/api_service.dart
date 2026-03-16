@@ -144,4 +144,15 @@ class ApiService {
       rethrow;
     }
   }
+
+  // ดึงข้อมูลอีเว้นท์/โปรโมชั่น
+  Future<dynamic> getEvents() async {
+    try {
+      final response = await _dio.get('/events');
+      return response.data;
+    } catch (e) {
+      print('❌ Fetch Events Error: $e');
+      rethrow;
+    }
+  }
 }

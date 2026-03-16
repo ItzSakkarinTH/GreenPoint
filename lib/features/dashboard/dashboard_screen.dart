@@ -9,6 +9,9 @@ import 'profile_tab.dart';
 import 'product_list_screen.dart';
 import 'shop_detail_screen.dart';
 import 'scan_screen.dart';
+import '../../core/providers/user_provider.dart';
+import '../../core/providers/event_provider.dart';
+import '../../core/models/event_model.dart';
 
 // กำหนดโทนสีตามดีไซน์ใหม่
 const Color primaryGreen = Color(0xFF2E7D32);
@@ -130,6 +133,8 @@ class _HomeTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final shopsAsync = ref.watch(shopsProvider);
+    final userProfileAsync = ref.watch(userProfileProvider);
+    final eventsAsync = ref.watch(eventsProvider);
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
@@ -138,27 +143,50 @@ class _HomeTab extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Promo Card
-          _buildPromoCard(),
+          eventsAsync.when(
+            data: (events) {
+              if (events.isEmpty) return _buildDefaultPromoCard();
+              return _buildPromoCard(events.first);
+            },
+            loading: () => const Center(child: CircularProgressIndicator(color: primaryGreen)),
+            error: (err, _) => _buildDefaultPromoCard(),
+          ),
+          const SizedBox(height: 32),
+
           const SizedBox(height: 32),
 
           // Progress Section
-          const Text(
-            'วันนี้สะสมแล้ว 20 / 100 GP',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: 0.2,
-              minHeight: 12,
-              backgroundColor: Colors.grey.shade200,
-              valueColor: const AlwaysStoppedAnimation<Color>(secondaryGreen),
-            ),
+          userProfileAsync.when(
+            data: (profile) {
+              final currentXp = profile.currentXp;
+              final maxXp = profile.maxXp;
+              final progress = maxXp > 0 ? (currentXp / maxXp).clamp(0.0, 1.0) : 0.0;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'วันนี้สะสมแล้ว $currentXp / $maxXp GP',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 12,
+                      backgroundColor: Colors.grey.shade200,
+                      valueColor: const AlwaysStoppedAnimation<Color>(secondaryGreen),
+                    ),
+                  ),
+                ],
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator(color: primaryGreen)),
+            error: (err, _) => const Text('Error loading profile'),
           ),
           const SizedBox(height: 24),
 
@@ -222,7 +250,7 @@ class _HomeTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildPromoCard() {
+  Widget _buildPromoCard(EventModel event) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -232,28 +260,73 @@ class _HomeTab extends ConsumerWidget {
       child: Column(
         children: [
           const SizedBox(height: 16),
-          // เราใช้ Image.file สำหรับรูปที่เจนนี่ (ในระบบจริงจะเป็น NetworkImage หรือ Asset)
-          // แต่เพื่อความสะดวกในตัวอย่างนี้ ผมจะใช้ Placeholder ที่สวยงามแทนหากหาไฟล์ไม่เจอ
-          ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: SizedBox(
-               height: 150,
-               child: Stack(
-                 alignment: Alignment.center,
-                 children: [
-                   const Icon(Icons.card_giftcard_rounded, size: 80, color: Color(0xFFFFB74D)),
-                   // หากมีรูปที่เจนนี่มาจริง ให้ใส่ตรงนี้
-                   // Image.network('...'),
-                 ],
-               ),
+          if (event.imageUrl != null && event.imageUrl!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.network(
+                  event.imageUrl!,
+                  height: 150,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return _buildPlaceholderImage();
+                  },
+                ),
+              ),
+            )
+          else
+            _buildPlaceholderImage(),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+            child: Column(
+              children: [
+                Text(
+                  event.title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2E7D32),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  event.description,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: greyText,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDefaultPromoCard() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF3E0), // Light orange background
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 16),
+          _buildPlaceholderImage(),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 16.0),
             child: Column(
               children: [
                 Text(
-                  'งานมหกรรมศรีสะเกษ',
+                  'ยังไม่มีกิจกรรมในขณะนี้',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -262,7 +335,7 @@ class _HomeTab extends ConsumerWidget {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'แต้ม X2 กับร้านที่ร่วมรายการ',
+                  'รอติดตามกิจกรรมดีๆ เร็วๆ นี้',
                   style: TextStyle(
                     fontSize: 14,
                     color: greyText,
@@ -272,6 +345,21 @@ class _HomeTab extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPlaceholderImage() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: SizedBox(
+        height: 150,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            const Icon(Icons.card_giftcard_rounded, size: 80, color: Color(0xFFFFB74D)),
+          ],
+        ),
       ),
     );
   }
