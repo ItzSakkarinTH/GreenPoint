@@ -148,7 +148,7 @@ class _HomeTab extends ConsumerWidget {
               if (events.isEmpty) return _buildDefaultPromoCard();
               return _buildPromoCard(events.first);
             },
-            loading: () => const Center(child: CircularProgressIndicator(color: primaryGreen)),
+            loading: () => _buildLoadingPromoCard(),
             error: (err, _) => _buildDefaultPromoCard(),
           ),
           const SizedBox(height: 32),
@@ -352,14 +352,67 @@ class _HomeTab extends ConsumerWidget {
   Widget _buildPlaceholderImage() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
-      child: SizedBox(
+      child: Container(
         height: 150,
-        child: Stack(
+        color: Colors.white.withOpacity(0.5),
+        child: const Stack(
           alignment: Alignment.center,
           children: [
-            const Icon(Icons.card_giftcard_rounded, size: 80, color: Color(0xFFFFB74D)),
+            Icon(Icons.card_giftcard_rounded, size: 80, color: Color(0xFFFFB74D)),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingPromoCard() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF3E0),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                height: 150,
+                width: double.infinity,
+                color: Colors.white.withOpacity(0.5),
+                child: const Center(
+                  child: CircularProgressIndicator(color: primaryGreen),
+                ),
+              ),
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16.0),
+            child: Column(
+              children: [
+                 Text(
+                   'กำลังโหลดกิจกรรม...',
+                   style: TextStyle(
+                     fontSize: 18,
+                     fontWeight: FontWeight.bold,
+                     color: Color(0xFF2E7D32),
+                   ),
+                 ),
+                 SizedBox(height: 4),
+                 Text(
+                   'กรุณารอสักครู่',
+                   style: TextStyle(
+                     fontSize: 14,
+                     color: greyText,
+                   ),
+                 ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
