@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'shop_provider.dart';
+import 'package:greenpoint/core/providers/shop_provider.dart';
 import '../models/event_model.dart';
 
 final eventsProvider = FutureProvider.autoDispose<List<EventModel>>((ref) async {

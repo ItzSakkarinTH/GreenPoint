@@ -1,8 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../network/api_service.dart';
-import '../models/shop_model.dart';
-
-import '../models/product_model.dart';
+import 'package:greenpoint/core/network/api_service.dart';
+import 'package:greenpoint/core/models/shop_model.dart';
+import 'package:greenpoint/core/models/product_model.dart';
 
 final apiServiceProvider = Provider((ref) => ApiService());
 

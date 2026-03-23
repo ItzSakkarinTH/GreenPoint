@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'shop_provider.dart'; // ใช้ apiServiceProvider จากที่นี่
-import 'auth_provider.dart';
+import 'package:greenpoint/core/providers/shop_provider.dart'; // ใช้ apiServiceProvider จากที่นี่
+import 'package:greenpoint/core/providers/auth_provider.dart';
 import '../models/user_model.dart';
 
 final userProfileProvider = FutureProvider.autoDispose<UserProfile>((ref) async {

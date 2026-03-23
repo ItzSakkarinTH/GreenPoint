@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:io';
+import 'dart:async';
 
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/shop_provider.dart';
@@ -127,11 +128,51 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 }
 
-class _HomeTab extends ConsumerWidget {
+class _HomeTab extends ConsumerStatefulWidget {
   const _HomeTab();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_HomeTab> createState() => _HomeTabState();
+}
+
+class _HomeTabState extends ConsumerState<_HomeTab> {
+  final PageController _pageController = PageController(viewportFraction: 0.9);
+  int _currentPage = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startAutoScroll();
+  }
+
+  void _startAutoScroll() {
+    _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (_pageController.hasClients) {
+        final eventsAsync = ref.read(eventsProvider);
+        eventsAsync.whenData((events) {
+          if (events.length > 1) {
+            final nextPage = (_currentPage + 1) % events.length;
+            _pageController.animateToPage(
+              nextPage,
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeInOutCubic,
+            );
+          }
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final shopsAsync = ref.watch(shopsProvider);
     final userProfileAsync = ref.watch(userProfileProvider);
     final eventsAsync = ref.watch(eventsProvider);
@@ -142,11 +183,52 @@ class _HomeTab extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Promo Card
+          // Promo Carousel
           eventsAsync.when(
             data: (events) {
               if (events.isEmpty) return _buildDefaultPromoCard();
-              return _buildPromoCard(events.first);
+              
+              return Column(
+                children: [
+                  SizedBox(
+                    height: 280,
+                    child: PageView.builder(
+                      controller: _pageController,
+                      onPageChanged: (index) {
+                        setState(() {
+                          _currentPage = index;
+                        });
+                      },
+                      itemCount: events.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                          child: _buildPromoCard(events[index]),
+                        );
+                      },
+                    ),
+                  ),
+                  if (events.length > 1) ...[
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(
+                        events.length,
+                        (index) => AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          margin: const EdgeInsets.only(right: 6),
+                          height: 8,
+                          width: _currentPage == index ? 24 : 8,
+                          decoration: BoxDecoration(
+                            color: _currentPage == index ? primaryGreen : Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              );
             },
             loading: () => _buildLoadingPromoCard(),
             error: (err, _) => _buildDefaultPromoCard(),

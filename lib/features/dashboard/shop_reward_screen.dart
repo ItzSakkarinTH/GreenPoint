@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/reward_provider.dart';
 import '../../core/providers/user_provider.dart';
+import '../../core/providers/shop_provider.dart';
 import '../../core/models/reward_model.dart';
 
 const Color primaryGreen = Color(0xFF2E7D32);
