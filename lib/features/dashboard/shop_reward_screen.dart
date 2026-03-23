@@ -135,7 +135,7 @@ class _ShopRewardScreenState extends ConsumerState<ShopRewardScreen> {
                   physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    childAspectRatio: 0.72, // ปรับให้ Card มีความสูงเพิ่มขึ้น
+                    childAspectRatio: 0.62, // ปรับให้ Card มีความสูงเพิ่มขึ้นเพื่อป้องกัน Overflow
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                   ),
@@ -258,22 +258,65 @@ class _ShopRewardScreenState extends ConsumerState<ShopRewardScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('ยืนยันการแลกรางวัล'),
-        content: Text('คุณต้องการใช้ ${reward.pointsRequired} แต้มเพื่อแลก "${reward.name}" ใช่หรือไม่?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('คุณต้องการใช้ ${reward.pointsRequired} แต้ม'),
+            Text('เพื่อแลก "${reward.name}" ใช่หรือไม่?'),
+            const SizedBox(height: 16),
+            const Text(
+              'สามารถติดต่อรับไอเทมตัวจริงได้ที่หน้าร้าน',
+              style: TextStyle(color: Colors.grey, fontSize: 13),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('ยกเลิก', style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
-            onPressed: () {
-              // Call API to redeem
-              Navigator.pop(context);
+            onPressed: () async {
+              Navigator.pop(context); // ปิด Dialog ทันที
+              
+              // แสดง Loading Overlay หรือ SnackBar
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('แลกรางวัลสำเร็จ! กรุณานับไอเทมที่หน้าร้าน')),
+                const SnackBar(content: Text('กำลังดำเนินการแลกรางวัล...')),
               );
+
+              try {
+                final apiService = ref.read(apiServiceProvider);
+                await apiService.redeemReward(reward.id);
+                
+                // สั่งรีเฟรชข้อมูลคะแนนใหม่หลังจากแลกเสร็จ
+                ref.invalidate(shopPointsProvider(widget.shopId));
+                
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('แลกรางวัลสำเร็จ! กรุณานับไอเทมที่หน้าร้าน'),
+                      backgroundColor: primaryGreen,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('เกิดข้อผิดพลาด: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
             },
-            style: ElevatedButton.styleFrom(backgroundColor: primaryGreen),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryGreen,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
             child: const Text('ยืนยัน', style: TextStyle(color: Colors.white)),
           ),
         ],
