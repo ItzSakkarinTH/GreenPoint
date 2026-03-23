@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/models/product_model.dart';
+import 'shop_reward_screen.dart';
 
 const Color primaryGreen = Color(0xFF2E7D32);
 const Color secondaryGreen = Color(0xFF4CAF50);
@@ -73,7 +74,7 @@ class ProductDetailScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 40),
-                  _buildShopInfo(),
+                  _buildShopInfo(context),
                   const SizedBox(height: 100), // Space for bottom button if needed
                 ],
               ),
@@ -155,7 +156,7 @@ class ProductDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildShopInfo() {
+  Widget _buildShopInfo(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -163,29 +164,57 @@ class ProductDetailScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.grey.shade100),
       ),
-      child: Row(
+      child: Column(
         children: [
-          const CircleAvatar(
-            backgroundColor: primaryGreen,
-            child: Icon(Icons.store, color: Colors.white),
+          Row(
+            children: [
+              const CircleAvatar(
+                backgroundColor: primaryGreen,
+                child: Icon(Icons.store, color: Colors.white),
+              ),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'ร้านค้าพาร์ทเนอร์',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    Text(
+                      'GreenPoint Certified',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.verified, color: Colors.blue.shade400, size: 20),
+            ],
           ),
-          const SizedBox(width: 16),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'ร้านค้าพาร์ทเนอร์',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-                Text(
-                  'GreenPoint Certified',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-              ],
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ShopRewardScreen(
+                      shopId: product.shopId,
+                      shopName: 'Cha-ji Coffee', // Mock name
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.redeem, size: 18),
+              label: const Text('ดูของรางวัล/แลกแต้มของร้านนี้'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: primaryGreen,
+                side: const BorderSide(color: primaryGreen),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
             ),
           ),
-          Icon(Icons.verified, color: Colors.blue.shade400, size: 20),
         ],
       ),
     );

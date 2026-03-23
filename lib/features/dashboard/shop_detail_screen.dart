@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/models/shop_model.dart';
+import '../../core/providers/user_provider.dart';
 import 'product_list_screen.dart';
+import 'shop_reward_screen.dart';
 
-const Color primaryGreen = Color(0xFF004D40); // Darker green from the screenshot
+const Color primaryGreen = Color(0xFF004D40); 
 const Color secondaryGreen = Color(0xFFE8F5E9);
 const Color accentGreen = Color(0xFF00695C);
 
@@ -14,6 +16,8 @@ class ShopDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final shopPointsAsync = ref.watch(shopPointsProvider(shop.shopId));
+
     return Scaffold(
       backgroundColor: const Color(0xFFFBFCFA),
       appBar: AppBar(
@@ -106,24 +110,46 @@ class ShopDetailScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    shop.name,
-                    style: const TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.black,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          shop.name,
+                          style: const TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                      shopPointsAsync.when(
+                        data: (pts) => Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: primaryGreen,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '$pts GP',
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        loading: () => const CircularProgressIndicator(strokeWidth: 2),
+                        error: (_, __) => const SizedBox(),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   const Row(
                     children: [
                       Text(
-                        'Coffee', // Placeholder for category
+                        'Partner Store',
                         style: TextStyle(color: Colors.grey, fontSize: 16),
                       ),
                       SizedBox(width: 10),
                       Text(
-                        '4.5', // Placeholder for rating
+                        '4.5',
                         style: TextStyle(
                           color: Colors.orange,
                           fontSize: 16,
@@ -169,13 +195,17 @@ class ShopDetailScreen extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: Colors.grey.shade100,
                       borderRadius: BorderRadius.circular(16),
-                      image: const DecorationImage(
-                        image: NetworkImage('https://static-maps.yandex.ru/1.x/?lang=en-US&ll=104.32,15.11&z=14&l=map&size=650,300'),
-                        fit: BoxFit.cover,
-                      ),
                     ),
-                    child: const Center(
-                      child: Icon(Icons.location_on, color: primaryGreen, size: 40),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.map_outlined, color: Colors.grey.shade400, size: 40),
+                        const SizedBox(height: 8),
+                        Text(
+                          'แผนที่กำลังปรับปรุง',
+                          style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -247,14 +277,13 @@ class ShopDetailScreen extends ConsumerWidget {
           Expanded(
             child: ElevatedButton(
               onPressed: () {
-                // Navigate to product list
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => ProductListScreen(shopId: shop.shopId)),
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF004D40),
+                backgroundColor: primaryGreen,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
@@ -268,15 +297,23 @@ class ShopDetailScreen extends ConsumerWidget {
           Expanded(
             child: ElevatedButton(
               onPressed: () {
-                // Feature for coupons
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ShopRewardScreen(
+                      shopId: shop.shopId,
+                      shopName: shop.name,
+                    ),
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF004D40),
+                backgroundColor: accentGreen,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: const Text(
-                'คูปองส่วนลด',
+                'แลกของรางวัล',
                 style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),

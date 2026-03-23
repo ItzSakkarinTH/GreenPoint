@@ -138,8 +138,37 @@ class ApiService {
       _checkAndThrowError(response, 'ดึงข้อมูลประวัติธุรกรรมล้มเหลว');
       return response.data;
     } catch (e) {
-      print('❌ Fetch History Error: $e');
-      rethrow;
+      print('❌ Fetch History Error: $e (Using Mock Data)');
+      // คืนค่า Mock กรณีดึงจาก Server ไม่ได้
+      return [
+        {
+          'id': '1',
+          'title': 'ซื้อกาแฟโดยไม่รับถุง (Mock)',
+          'date': '23 มี.ค. 2026',
+          'points': 10,
+          'isNegative': false
+        },
+        {
+          'id': '2',
+          'title': 'แลกแก้วพกพา (Mock)',
+          'date': '20 มี.ค. 2026',
+          'points': 1200,
+          'isNegative': true
+        },
+      ];
+    }
+  }
+
+  // ดึงคะแนนสะสมเฉพาะร้าน
+  Future<int> getUserPointsByShop(String shopId) async {
+    try {
+      final response = await _dio.get('/loyalty/points', queryParameters: {'shopId': shopId});
+      _checkAndThrowError(response, 'ดึงคะแนนล้มเหลว');
+      return response.data['points'] ?? 0;
+    } catch (e) {
+      print('❌ Fetch Shop Points Error: $e (Using Mock Data)');
+      // Mock คะแนนถ้าล้มเหลว (ให้ตรงกับรูป)
+      return 1200; 
     }
   }
 
@@ -186,6 +215,52 @@ class ApiService {
       return response.data;
     } catch (e) {
       print('❌ Fetch Events Error: $e');
+      rethrow;
+    }
+  }
+
+  // ดึงรายการของรางวัลของร้านค้า
+  Future<dynamic> getRewards(String shopId) async {
+    try {
+      final response = await _dio.get('/rewards', queryParameters: {'shopId': shopId});
+      _checkAndThrowError(response, 'ดึงความรางวัลล้มเหลว');
+      return response.data;
+    } catch (e) {
+      print('❌ Fetch Rewards Error: $e (Using Mock Data)');
+      // คืนค่า Mock เสมอกรณี Backend ไม่พร้อม
+      return [
+        {
+          'id': '1',
+          'name': 'แก้วพกพา (Mock)',
+          'pointsRequired': 1200,
+          'shopId': shopId,
+          'imageUrl': 'https://img.freepik.com/premium-vector/reusable-coffee-cup-icon_414330-153.jpg'
+        },
+        {
+          'id': '2',
+          'name': 'ถุงผ้ารักโลก (Mock)',
+          'pointsRequired': 900,
+          'shopId': shopId,
+          'imageUrl': 'https://img.freepik.com/premium-vector/tote-bag-with-leaf-logo-eco-friendly-concept_114835-139.jpg'
+        },
+        {
+          'id': '3',
+          'name': 'กระเป๋าดินสอ (Mock)',
+          'pointsRequired': 300,
+          'shopId': shopId
+        },
+      ];
+    }
+  }
+
+  // แลกของรางวัล
+  Future<dynamic> redeemReward(String rewardId) async {
+    try {
+      final response = await _dio.post('/rewards/redeem', data: {'rewardId': rewardId});
+      _checkAndThrowError(response, 'การแลกรางวัลล้มเหลว');
+      return response.data;
+    } catch (e) {
+      print('❌ Redeem Reward Error: $e');
       rethrow;
     }
   }

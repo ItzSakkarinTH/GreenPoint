@@ -52,3 +52,7 @@ final historyProvider = FutureProvider.autoDispose<List<Transaction>>((ref) asyn
     isNegative: item['isNegative'] ?? false,
   )).toList();
 });
+final shopPointsProvider = FutureProvider.autoDispose.family<int, String>((ref, shopId) async {
+  final apiService = ref.watch(apiServiceProvider);
+  return await apiService.getUserPointsByShop(shopId);
+});

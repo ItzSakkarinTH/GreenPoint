@@ -185,7 +185,14 @@ class ProfileTab extends ConsumerWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(tx.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              Expanded(
+                                child: Text(
+                                  tx.title, 
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
                               Text(
                                 '${tx.isNegative ? '-' : '+'}${tx.points} GP',
                                 style: TextStyle(
