@@ -191,7 +191,7 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
               return Column(
                 children: [
                   SizedBox(
-                    height: 280,
+                    height: 310,
                     child: PageView.builder(
                       controller: _pageController,
                       onPageChanged: (index) {
@@ -372,6 +372,8 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
                     color: Color(0xFF2E7D32),
                   ),
                   textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -523,10 +525,14 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
           Text(
             name,
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
           Text(
             distance,
             style: const TextStyle(color: greyText, fontSize: 12),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

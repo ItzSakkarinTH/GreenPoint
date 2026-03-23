@@ -226,6 +226,8 @@ class _ShopRewardScreenState extends ConsumerState<ShopRewardScreen> {
                   Text(
                     'ใช้ ${reward.pointsRequired} แต้ม',
                     style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const Spacer(),
                   SizedBox(
