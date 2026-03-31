@@ -26,6 +26,7 @@ final userProfileProvider = FutureProvider.autoDispose<UserProfile>((ref) async 
       currentXp: userData['currentXp'] ?? 0,
       maxXp: userData['maxXp'] ?? 100,
       plasticReduced: userData['plasticReduced'] ?? 0,
+      totalPoints: userData['totalPoints'] ?? userData['points'] ?? 0,
     );
   } on DioException catch (e) {
     if (e.response?.statusCode == 401) {
@@ -49,6 +50,7 @@ final historyProvider = FutureProvider.autoDispose<List<Transaction>>((ref) asyn
     title: item['title'] ?? 'กิจกรรมรักษ์โลก',
     date: item['date'] ?? '-',
     points: item['points'] ?? 0,
+    xp: item['xp'] ?? 0,
     isNegative: item['isNegative'] ?? false,
   )).toList();
 });

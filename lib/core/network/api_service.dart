@@ -146,6 +146,7 @@ class ApiService {
           'title': 'ซื้อกาแฟโดยไม่รับถุง (Mock)',
           'date': '23 มี.ค. 2026',
           'points': 10,
+          'xp': 5,
           'isNegative': false
         },
         {
@@ -153,7 +154,16 @@ class ApiService {
           'title': 'แลกแก้วพกพา (Mock)',
           'date': '20 มี.ค. 2026',
           'points': 1200,
+          'xp': 100,
           'isNegative': true
+        },
+        {
+          'id': '3',
+          'title': 'ลดการใช้ถุงหิ้ว (Mock)',
+          'date': '19 มี.ค. 2026',
+          'points': 5,
+          'xp': 2,
+          'isNegative': false
         },
       ];
     }

@@ -288,7 +288,7 @@ class ShopDetailScreen extends ConsumerWidget {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: const Text(
-                'สแกนรับแต้ม',
+                'เมนูสินค้า',
                 style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),

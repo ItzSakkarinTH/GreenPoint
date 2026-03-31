@@ -5,6 +5,7 @@ import '../../core/providers/reward_provider.dart';
 import '../../core/providers/user_provider.dart';
 import '../../core/providers/shop_provider.dart';
 import '../../core/models/reward_model.dart';
+import '../../core/utils/dialog_utils.dart';
 
 const Color primaryGreen = Color(0xFF2E7D32);
 const Color secondaryGreen = Color(0xFF4CAF50);
@@ -304,104 +305,91 @@ class _ShopRewardScreenState extends ConsumerState<ShopRewardScreen> {
     );
   }
 
+// _showRedeemDialog and _showResultDialog are replaced by DialogUtils
+
+
   void _showRedeemDialog(Reward reward) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('ยืนยันการแลกรางวัล'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('คุณต้องการใช้ ${reward.pointsRequired} แต้ม'),
-            Text('เพื่อแลก "${reward.name}" ใช่หรือไม่?'),
-            const SizedBox(height: 16),
-            const Text(
-              'สามารถติดต่อรับไอเทมตัวจริงได้ที่หน้าร้าน',
-              style: TextStyle(color: Colors.grey, fontSize: 13),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('ยกเลิก', style: TextStyle(color: Colors.grey)),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context); 
-              
-              setState(() => _isRedeeming = true);
-
-              try {
-                final apiService = ref.read(apiServiceProvider);
-                await apiService.redeemReward(reward.id);
-                
-                ref.invalidate(shopPointsProvider(widget.shopId));
-                
-                if (mounted) {
-                  setState(() => _isRedeeming = false);
-                  _showResultDialog(true, reward.name);
-                }
-              } catch (e) {
-                if (mounted) {
-                  setState(() => _isRedeeming = false);
-                  _showResultDialog(false, reward.name, error: e.toString());
-                }
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryGreen,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            child: const Text('ยืนยัน', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showResultDialog(bool success, String rewardName, {String? error}) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Icon(
-          success ? Icons.check_circle : Icons.error_outline,
-          color: success ? primaryGreen : Colors.red,
-          size: 60,
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              success ? 'แลกรางวัลสำเร็จ!' : 'เกิดข้อผิดพลาด',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              success 
-                ? 'คุณได้ทำการแลก "$rewardName" เรียบร้อยแล้ว กรุณาติดต่อรับไอเทมที่หน้าร้าน'
-                : (error ?? 'ไม่สามารถแลกรางวัลได้ในขณะนี้'),
-              style: const TextStyle(fontSize: 14),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-        actions: [
-          Center(
-            child: ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: success ? primaryGreen : Colors.grey,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.help_outline_rounded, size: 64, color: Colors.orange),
+              const SizedBox(height: 16),
+              const Text('ยืนยันการแลกรางวัล', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+              RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  style: const TextStyle(color: Colors.black87, fontSize: 16),
+                  children: [
+                    const TextSpan(text: 'คุณต้องการใช้ '),
+                    TextSpan(text: '${reward.pointsRequired} แต้ม', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
+                    const TextSpan(text: ' เพื่อแลก '),
+                    TextSpan(text: '"${reward.name}"', style: const TextStyle(fontWeight: FontWeight.bold, color: primaryGreen)),
+                    const TextSpan(text: ' ใช่หรือไม่?'),
+                  ],
+                ),
               ),
-              child: const Text('ตกลง', style: TextStyle(color: Colors.white)),
-            ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: const Text('ยกเลิก'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        Navigator.pop(context); 
+                        setState(() => _isRedeeming = true);
+                        try {
+                          final apiService = ref.read(apiServiceProvider);
+                          await apiService.redeemReward(reward.id);
+                          ref.invalidate(shopPointsProvider(widget.shopId));
+                          if (mounted) {
+                            setState(() => _isRedeeming = false);
+                            DialogUtils.showSuccessDialog(
+                              context: context,
+                              title: 'แลกรางวัลสำเร็จ!',
+                              message: 'คุณได้แลก "${reward.name}" เรียบร้อยแล้ว กรุณาติดต่อรับไอเทมที่หน้าร้าน',
+                            );
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            setState(() => _isRedeeming = false);
+                            DialogUtils.showErrorDialog(
+                              context: context,
+                              title: 'เกิดข้อผิดพลาด',
+                              message: e.toString(),
+                            );
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryGreen,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: const Text('ยืนยัน', style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

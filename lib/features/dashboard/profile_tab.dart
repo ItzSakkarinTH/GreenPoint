@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/user_provider.dart';
 import '../../core/providers/auth_provider.dart';
+import '../../core/models/user_model.dart';
 import 'streak_screen.dart';
 
 const Color primaryGreen = Color(0xFF2E7D32);
@@ -20,6 +21,7 @@ class ProfileTab extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        centerTitle: false,
         title: Row(
           children: [
             Container(
@@ -46,62 +48,61 @@ class ProfileTab extends ConsumerWidget {
             icon: const Icon(Icons.settings, color: primaryGreen),
             onPressed: () {},
           ),
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.red),
-            onPressed: () => ref.read(authProvider.notifier).logout(),
-          ),
         ],
       ),
       body: profileAsync.when(
         data: (profile) => SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             children: [
+              const SizedBox(height: 20),
               // User Info
               const CircleAvatar(
                 radius: 55,
-                backgroundColor: Color(0xFFE8F5E9),
-                child: Icon(Icons.person, size: 70, color: primaryGreen),
+                backgroundColor: Color(0xFFF1F1F1),
+                child: Icon(Icons.person, size: 70, color: Colors.grey),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Text(
-                profile.name.isEmpty ? 'สมาชิก GreenPoint' : profile.name,
+                profile.name.isEmpty ? 'Mr. G' : profile.name,
                 style: const TextStyle(
-                  fontSize: 26, 
-                  fontWeight: FontWeight.w900, 
-                  color: primaryGreen,
+                  fontSize: 24, 
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
               ),
-              const SizedBox(height: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: secondaryGreen.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  'LV.${profile.level} Green Ambassador',
-                  style: const TextStyle(
-                    color: secondaryGreen,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
+              Text(
+                'Level ${profile.level}',
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
                 ),
               ),
               const SizedBox(height: 12),
               
               // XP Progress Bar
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: LinearProgressIndicator(
-                  value: profile.currentXp / profile.maxXp,
-                  minHeight: 12,
-                  backgroundColor: Colors.grey.shade200,
-                  valueColor: const AlwaysStoppedAnimation<Color>(secondaryGreen),
+              SizedBox(
+                width: 220,
+                child: Column(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: LinearProgressIndicator(
+                        value: profile.maxXp > 0 ? profile.currentXp / profile.maxXp : 0.7,
+                        minHeight: 12,
+                        backgroundColor: const Color(0xFFE0E0E0),
+                        valueColor: const AlwaysStoppedAnimation<Color>(secondaryGreen),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      '${profile.currentXp} / ${profile.maxXp}', 
+                      style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 14)
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 4),
-              Text('${profile.currentXp} / ${profile.maxXp}', style: const TextStyle(color: Colors.grey)),
               
               const SizedBox(height: 32),
               
@@ -113,24 +114,37 @@ class ProfileTab extends ConsumerWidget {
                     children: [
                       Image.asset(
                         'assets/images/nong_thung.png',
-                        height: 100,
+                        height: 90,
                         fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => 
+                          const Icon(Icons.eco, size: 80, color: secondaryGreen),
                       ),
-                      TextButton.icon(
-                        onPressed: () {
+                      const SizedBox(height: 4),
+                      GestureDetector(
+                        onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => StreakScreen(plasticCount: profile.plasticReduced)),
                           );
                         },
-                        icon: const Icon(Icons.auto_graph, size: 16, color: primaryGreen),
-                        label: const Text('ดู streak', style: TextStyle(color: primaryGreen, fontWeight: FontWeight.bold)),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.open_in_new, size: 16, color: secondaryGreen),
+                            SizedBox(width: 4),
+                            Text(
+                              'ดู streak', 
+                              style: TextStyle(color: secondaryGreen, fontWeight: FontWeight.bold, fontSize: 16)
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Container(
+                      margin: const EdgeInsets.only(top: 10),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: secondaryGreen,
@@ -138,35 +152,43 @@ class ProfileTab extends ConsumerWidget {
                       ),
                       child: const Text(
                         'น้องถุงรอคุณไปรักษ์โลกนะ ไปซื้อของโดยไม่รับถุงกันเถอะ!',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: Colors.white, 
+                          fontWeight: FontWeight.bold, 
+                          fontSize: 15,
+                          height: 1.4,
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
               
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
               
               // Achievements
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text('Achievements', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text(
+                'Achievements', 
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black54)
               ),
               const SizedBox(height: 12),
               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildBadge(Icons.eco, true),
-                  _buildBadge(Icons.psychology, true),
-                  _buildBadge(Icons.public, false),
+                  _buildBadge(Icons.eco),
+                  const SizedBox(width: 16),
+                  _buildBadge(Icons.psychology),
+                  const SizedBox(width: 16),
+                  _buildBadge(Icons.public, isUnlocked: false),
                 ],
               ),
               
-              const SizedBox(height: 32),
+              const SizedBox(height: 40),
               
-              // History
+              // History Section
               const Align(
                 alignment: Alignment.centerLeft,
-                child: Text('History', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                child: Text('History', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
               ),
               const SizedBox(height: 16),
               historyAsync.when(
@@ -177,18 +199,19 @@ class ProfileTab extends ConsumerWidget {
                   itemBuilder: (context, index) {
                     final tx = transactions[index];
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
+                      padding: const EdgeInsets.only(bottom: 24),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(tx.date, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                          Text(tx.date, style: const TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.w500)),
+                          const SizedBox(height: 2),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Expanded(
                                 child: Text(
                                   tx.title, 
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -197,7 +220,7 @@ class ProfileTab extends ConsumerWidget {
                                 '${tx.isNegative ? '-' : '+'}${tx.points} GP',
                                 style: TextStyle(
                                   color: tx.isNegative ? Colors.red : primaryGreen,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w900,
                                   fontSize: 16,
                                 ),
                               ),
@@ -208,28 +231,39 @@ class ProfileTab extends ConsumerWidget {
                     );
                   },
                 ),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Text('Error: $e'),
+                loading: () => const Center(child: CircularProgressIndicator(color: primaryGreen)),
+                error: (e, _) => Center(child: Text('Error: $e')),
               ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error loading profile: $e')),
+        loading: () => const Center(child: CircularProgressIndicator(color: primaryGreen)),
+        error: (e, _) => Center(child: Text('Error: $e')),
       ),
     );
   }
 
-  Widget _buildBadge(IconData icon, bool unlocked) {
+  Widget _buildBadge(IconData icon, {bool isUnlocked = true}) {
     return Container(
-      margin: const EdgeInsets.only(right: 16),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: unlocked ? primaryGreen.withOpacity(0.1) : Colors.grey.shade100,
+        color: isUnlocked ? secondaryGreen : const Color(0xFFE0E0E0),
         shape: BoxShape.circle,
-        border: Border.all(color: unlocked ? primaryGreen : Colors.grey.shade300, width: 2),
+        border: Border.all(color: Colors.white, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: Icon(icon, color: unlocked ? primaryGreen : Colors.grey.shade400, size: 30),
+      child: Icon(
+        icon, 
+        color: isUnlocked ? Colors.white : Colors.grey, 
+        size: 28
+      ),
     );
   }
 }

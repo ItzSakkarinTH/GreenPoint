@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/network/api_service.dart';
+import '../../core/utils/dialog_utils.dart';
 
 class ScanScreen extends ConsumerStatefulWidget {
   const ScanScreen({super.key});
@@ -33,12 +34,11 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
       final pointsAwarded = result['pointsAwarded'] ?? 0;
       final totalPoints = result['totalPoints'] ?? 0;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('สแกนรับคะแนนสำเร็จ!\nได้รับ $pointsAwarded คะแนน (รวม: $totalPoints คะแนน)'),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 4),
-        ),
+
+      DialogUtils.showSuccessDialog(
+        context: context,
+        title: 'สแกนสำเร็จ!',
+        message: 'คุณได้รับ $pointsAwarded GP\n(รวมทั้งหมดของคุณ: $totalPoints GP)',
       );
       
       // ปิดกล้องเพื่อกลับหน้าเดิมหลังจากสแกนสำเร็จ (ถ้าต้องการ)
@@ -51,11 +51,11 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
         errorMsg = errorMsg.replaceFirst('Exception: ', '');
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('เกิดข้อผิดพลาด: $errorMsg'),
-          backgroundColor: Colors.red,
-        ),
+
+      DialogUtils.showErrorDialog(
+        context: context,
+        title: 'เกิดข้อผิดพลาด',
+        message: errorMsg,
       );
     } finally {
       if (mounted) {
