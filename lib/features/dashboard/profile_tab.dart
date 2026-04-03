@@ -124,7 +124,10 @@ class ProfileTab extends ConsumerWidget {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => StreakScreen(plasticCount: profile.plasticReduced)),
+                            MaterialPageRoute(builder: (context) => StreakScreen(
+                              plasticCount: profile.plasticReduced,
+                              streakCount: profile.streakCount,
+                            )),
                           );
                         },
                         child: const Row(

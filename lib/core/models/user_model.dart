@@ -23,6 +23,7 @@ class UserProfile {
   final int maxXp;
   final int plasticReduced;
   final int totalPoints;
+  final int streakCount;
 
   UserProfile({
     required this.name,
@@ -31,5 +32,6 @@ class UserProfile {
     required this.maxXp,
     required this.plasticReduced,
     this.totalPoints = 0,
+    this.streakCount = 0,
   });
 }
