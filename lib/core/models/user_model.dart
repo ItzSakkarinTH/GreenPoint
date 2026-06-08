@@ -21,7 +21,7 @@ class UserProfile {
   final int level;
   final int currentXp;
   final int maxXp;
-  final int plasticReduced;
+  final double plasticReduced;
   final int totalPoints;
   final int streakCount;
 

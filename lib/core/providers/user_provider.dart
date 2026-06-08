@@ -22,12 +22,12 @@ final userProfileProvider = FutureProvider.autoDispose<UserProfile>((ref) async 
     
     return UserProfile(
       name: displayName,
-      level: userData['level'] ?? 1,
-      currentXp: userData['currentXp'] ?? 0,
-      maxXp: userData['maxXp'] ?? 100,
-      plasticReduced: userData['plasticReduced'] ?? 0,
-      totalPoints: userData['totalPoints'] ?? userData['points'] ?? 0,
-      streakCount: userData['streakCount'] ?? userData['streak'] ?? 0,
+      level: (userData['level'] as num?)?.toInt() ?? 1,
+      currentXp: (userData['currentXp'] as num?)?.toInt() ?? 0,
+      maxXp: (userData['maxXp'] as num?)?.toInt() ?? 100,
+      plasticReduced: (userData['plasticReduced'] as num?)?.toDouble() ?? 0.0,
+      totalPoints: ((userData['totalPoints'] ?? userData['points']) as num?)?.toInt() ?? 0,
+      streakCount: ((userData['streakCount'] ?? userData['streak']) as num?)?.toInt() ?? 0,
     );
   } on DioException catch (e) {
     if (e.response?.statusCode == 401) {

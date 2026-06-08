@@ -6,13 +6,14 @@ const Color primaryGreen = Color(0xFF2E7D32);
 const Color backgroundLightGreen = Color(0xFFDCEDC8);
 
 class StreakScreen extends StatelessWidget {
-  final int plasticCount;
+  final double plasticCount;
   final int streakCount;
   const StreakScreen({super.key, required this.plasticCount, this.streakCount = 0});
 
   void _shareToFacebook() {
+    final formattedPlastic = plasticCount % 1 == 0 ? plasticCount.toInt().toString() : plasticCount.toString();
     Share.share(
-      'รักษ์โลกกับ GreenPoint! ฉันสแกนลดพลาสติกสะสมได้ $plasticCount ชิ้น และรักษา Streak ได้ต่อเนื่อง $streakCount วันแล้ว! 🔥✨ #GreenPoint #EcoFriendly',
+      'รักษ์โลกกับ GreenPoint! ฉันสแกนลดพลาสติกสะสมได้ $formattedPlastic ชิ้น และรักษา Streak ได้ต่อเนื่อง $streakCount วันแล้ว! 🔥✨ #GreenPoint #EcoFriendly',
       subject: 'GreenPoint Streak Share',
     );
   }
@@ -97,7 +98,7 @@ class StreakScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                '$plasticCount',
+                '${plasticCount % 1 == 0 ? plasticCount.toInt() : plasticCount}',
                 style: const TextStyle(
                   fontSize: 70,
                   fontWeight: FontWeight.w900,
