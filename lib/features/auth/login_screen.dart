@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/providers/auth_provider.dart';
 import 'register_screen.dart';
 
@@ -48,6 +49,37 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         setState(() {
           _isLoading = false;
           _errorMessage = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+        });
+      }
+    }
+  }
+
+  Future<void> _handleLineLogin() async {
+    final url = Uri.parse('https://transaction-shop.vercel.app/api/auth/line/login?platform=mobile');
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(
+          url,
+          mode: LaunchMode.externalApplication,
+        );
+      } else {
+        setState(() {
+          _errorMessage = 'ไม่สามารถเปิดเว็บบราวเซอร์เพื่อเข้าสู่ระบบ LINE ได้';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'เกิดข้อผิดพลาดในการเปิด LINE Login';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
         });
       }
     }
@@ -171,6 +203,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+              ),
+              const SizedBox(height: 16),
+              
+              // LINE Login Button
+              OutlinedButton.icon(
+                onPressed: _isLoading ? null : _handleLineLogin,
+                icon: const Icon(Icons.chat_bubble, color: Colors.white, size: 20),
+                label: const Text(
+                  'เข้าสู่ระบบด้วย LINE',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: const Color(0xFF06C755), // LINE Green
+                  side: BorderSide.none,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 2,
+                ),
               ),
               const SizedBox(height: 24),
               // Register Link
