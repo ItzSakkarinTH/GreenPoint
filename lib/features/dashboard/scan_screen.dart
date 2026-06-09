@@ -3,6 +3,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/network/api_service.dart';
 import '../../core/utils/dialog_utils.dart';
+import '../../core/providers/user_provider.dart';
 
 class ScanScreen extends ConsumerStatefulWidget {
   const ScanScreen({super.key});
@@ -41,8 +42,11 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
         message: 'คุณได้รับ $pointsAwarded GP\n(รวมทั้งหมดของคุณ: $totalPoints GP)',
       );
       
-      // ปิดกล้องเพื่อกลับหน้าเดิมหลังจากสแกนสำเร็จ (ถ้าต้องการ)
-      // Navigator.pop(context); 
+      // อัปเดตข้อมูลโปรไฟล์ผู้ใช้ทันที
+      ref.invalidate(userProfileProvider);
+      
+      // กลับหน้าแรก (จะปิดการทำงานของกล้องโดยอัตโนมัติเนื่องจากถูก Dispose)
+      ref.read(activeTabProvider.notifier).state = 0;
     } catch (e) {
       if (!mounted) return;
       

@@ -26,8 +26,9 @@ final userProfileProvider = FutureProvider.autoDispose<UserProfile>((ref) async 
       currentXp: (userData['currentXp'] as num?)?.toInt() ?? 0,
       maxXp: (userData['maxXp'] as num?)?.toInt() ?? 100,
       plasticReduced: (userData['plasticReduced'] as num?)?.toDouble() ?? 0.0,
-      totalPoints: ((userData['totalPoints'] ?? userData['points']) as num?)?.toInt() ?? 0,
+      totalPoints: ((userData['totalPointsEarned'] ?? userData['totalPoints'] ?? userData['points']) as num?)?.toInt() ?? 0,
       streakCount: ((userData['streakCount'] ?? userData['streak']) as num?)?.toInt() ?? 0,
+      todaysPoints: (userData['todaysPoints'] as num?)?.toInt() ?? 0,
     );
   } on DioException catch (e) {
     if (e.response?.statusCode == 401) {
@@ -59,3 +60,15 @@ final shopPointsProvider = FutureProvider.autoDispose.family<int, String>((ref, 
   final apiService = ref.watch(apiServiceProvider);
   return await apiService.getUserPointsByShop(shopId);
 });
+
+class ActiveTabNotifier extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  @override
+  set state(int value) => super.state = value;
+}
+
+final activeTabProvider = NotifierProvider<ActiveTabNotifier, int>(ActiveTabNotifier.new);
+
+

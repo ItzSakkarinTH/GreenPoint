@@ -24,6 +24,7 @@ class UserProfile {
   final double plasticReduced;
   final int totalPoints;
   final int streakCount;
+  final int todaysPoints;
 
   UserProfile({
     required this.name,
@@ -33,5 +34,6 @@ class UserProfile {
     required this.plasticReduced,
     this.totalPoints = 0,
     this.streakCount = 0,
+    this.todaysPoints = 0,
   });
 }

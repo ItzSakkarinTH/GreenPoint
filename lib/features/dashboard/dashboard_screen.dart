@@ -29,15 +29,15 @@ class DashboardScreen extends ConsumerStatefulWidget {
 }
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
-  int _currentIndex = 0;
 
   @override
   Widget build(BuildContext context) {
+    final currentIndex = ref.watch(activeTabProvider);
     return Scaffold(
       backgroundColor: backgroundWhite,
-      appBar: _currentIndex == 0 ? _buildAppBar() : null,
-      body: _buildBody(),
-      bottomNavigationBar: _buildBottomNav(),
+      appBar: currentIndex == 0 ? _buildAppBar() : null,
+      body: _buildBody(currentIndex),
+      bottomNavigationBar: _buildBottomNav(currentIndex),
     );
   }
 
@@ -76,8 +76,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  Widget _buildBody() {
-    switch (_currentIndex) {
+  Widget _buildBody(int currentIndex) {
+    switch (currentIndex) {
       case 0:
         return const _HomeTab();
       case 1:
@@ -91,7 +91,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }
   }
 
-  Widget _buildBottomNav() {
+  Widget _buildBottomNav(int currentIndex) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -104,11 +104,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ],
       ),
       child: BottomNavigationBar(
-        currentIndex: _currentIndex,
+        currentIndex: currentIndex,
         onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
+          ref.read(activeTabProvider.notifier).state = index;
         },
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
@@ -240,14 +238,14 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
           // Progress Section
           userProfileAsync.when(
             data: (profile) {
-              final currentXp = profile.currentXp;
-              final maxXp = profile.maxXp;
-              final progress = maxXp > 0 ? (currentXp / maxXp).clamp(0.0, 1.0) : 0.0;
+              final todaysPoints = profile.todaysPoints;
+              const maxDailyPoints = 100;
+              final progress = (todaysPoints / maxDailyPoints).clamp(0.0, 1.0);
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'วันนี้สะสมแล้ว $currentXp / $maxXp GP',
+                    'วันนี้สะสมแล้ว $todaysPoints / $maxDailyPoints GP',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
