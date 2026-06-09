@@ -311,7 +311,7 @@ class _ShopRewardScreenState extends ConsumerState<ShopRewardScreen> {
   void _showRedeemDialog(Reward reward) {
     showDialog(
       context: context,
-      builder: (context) => Dialog(
+      builder: (dialogContext) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -340,7 +340,7 @@ class _ShopRewardScreenState extends ConsumerState<ShopRewardScreen> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () => Navigator.pop(dialogContext),
                       style: OutlinedButton.styleFrom(
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -352,7 +352,7 @@ class _ShopRewardScreenState extends ConsumerState<ShopRewardScreen> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () async {
-                        Navigator.pop(context); 
+                        Navigator.pop(dialogContext); 
                         setState(() => _isRedeeming = true);
                         try {
                           final apiService = ref.read(apiServiceProvider);

@@ -75,7 +75,11 @@ class StreakScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.fireplace, color: Colors.orange, size: 40),
+                  Icon(
+                    Icons.fireplace, 
+                    color: streakCount > 0 ? Colors.orange : Colors.grey, 
+                    size: 40
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'Daily Streak: $streakCount วัน',

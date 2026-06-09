@@ -8,11 +8,25 @@ const Color primaryGreen = Color(0xFF2E7D32);
 const Color secondaryGreen = Color(0xFF66BB6A); // Lighter green for avatars/badges
 const Color greyText = Color(0xFF757575);
 
-class PartnerStoreTab extends ConsumerWidget {
+class PartnerStoreTab extends ConsumerStatefulWidget {
   const PartnerStoreTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PartnerStoreTab> createState() => _PartnerStoreTabState();
+}
+
+class _PartnerStoreTabState extends ConsumerState<PartnerStoreTab> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final shopsAsync = ref.watch(shopsProvider);
 
     return Scaffold(
@@ -57,6 +71,12 @@ class PartnerStoreTab extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: TextField(
+                    controller: _searchController,
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value;
+                      });
+                    },
                     decoration: InputDecoration(
                       hintText: 'ค้นหาร้านค้า...',
                       hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),
@@ -111,15 +131,23 @@ class PartnerStoreTab extends ConsumerWidget {
         ),
       ),
       body: shopsAsync.when(
-        data: (shops) => shops.isEmpty 
-          ? const Center(child: Text('ไม่พบร้านค้า'))
-          : ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-              itemCount: shops.length,
-              itemBuilder: (context, index) {
-                return _buildStoreItem(context, ref, shops[index]);
-              },
-            ),
+        data: (shops) {
+          final filteredShops = shops.where((shop) {
+            final nameMatch = shop.name.toLowerCase().contains(_searchQuery.toLowerCase());
+            final addressMatch = shop.address?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false;
+            return nameMatch || addressMatch;
+          }).toList();
+
+          return filteredShops.isEmpty 
+            ? const Center(child: Text('ไม่พบร้านค้า'))
+            : ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                itemCount: filteredShops.length,
+                itemBuilder: (context, index) {
+                  return _buildStoreItem(context, ref, filteredShops[index]);
+                },
+              );
+        },
         loading: () => const Center(child: CircularProgressIndicator(color: primaryGreen)),
         error: (err, stack) => Center(child: Text('เกิดข้อผิดพลาด: $err')),
       ),
