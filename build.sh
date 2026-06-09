@@ -15,8 +15,7 @@ echo "=== Building Flutter Web App (Release Mode) ==="
 flutter build web --release
 
 echo "=== Preparing Deployment Directory ==="
-mkdir -p dist
-cp -r build/web/* dist/
-cp vercel.json dist/
+mkdir -p public
+cp -r build/web/* public/
 
 echo "=== Build Completed Successfully ==="
