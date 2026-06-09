@@ -38,6 +38,11 @@ final userProfileProvider = FutureProvider.autoDispose<UserProfile>((ref) async 
     print('❌ Error in userProfileProvider: $e');
     rethrow;
   } catch (e) {
+    final errStr = e.toString().toLowerCase();
+    if (errStr.contains('401') || errStr.contains('unauthorized') || errStr.contains('unauth')) {
+      print('🔐 Unauthorized access (Exception), logging out...');
+      ref.read(authProvider.notifier).logout();
+    }
     print('❌ Error in userProfileProvider: $e');
     rethrow;
   }
