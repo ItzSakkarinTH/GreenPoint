@@ -46,7 +46,32 @@ class ProfileTab extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings, color: primaryGreen),
-            onPressed: () {},
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext dialogContext) {
+                  return AlertDialog(
+                    title: const Text('ออกจากระบบ', style: TextStyle(fontWeight: FontWeight.bold)),
+                    content: const Text('คุณต้องการออกจากระบบสะสมแต้มใช่หรือไม่?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop();
+                        },
+                        child: const Text('ยกเลิก', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop();
+                          ref.read(authProvider.notifier).logout();
+                        },
+                        child: const Text('ออกจากระบบ', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
           ),
         ],
       ),
