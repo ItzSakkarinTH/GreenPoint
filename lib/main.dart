@@ -21,24 +21,59 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Watch the auth state
-    final isLoggedIn = ref.watch(authProvider);
+    final authState = ref.watch(authProvider);
     
-    return MaterialApp(
-      title: 'GreenPoint Customer',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        // Modern Typography using Google Fonts
-        textTheme: GoogleFonts.interTextTheme(
-          Theme.of(context).textTheme,
+    return authState.when(
+      data: (isLoggedIn) => MaterialApp(
+        title: 'GreenPoint Customer',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          // Modern Typography using Google Fonts
+          textTheme: GoogleFonts.interTextTheme(
+            Theme.of(context).textTheme,
+          ),
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF2E7D32), // primaryGreen
+            primary: const Color(0xFF2E7D32),
+            secondary: const Color(0xFF81C784), // lightGreen
+          ),
+          useMaterial3: true,
         ),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2E7D32), // primaryGreen
-          primary: const Color(0xFF2E7D32),
-          secondary: const Color(0xFF81C784), // lightGreen
-        ),
-        useMaterial3: true,
+        home: isLoggedIn ? const DashboardScreen() : const LoginScreen(),
       ),
-      home: isLoggedIn ? const DashboardScreen() : const LoginScreen(),
+      loading: () => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          useMaterial3: true,
+        ),
+        home: const Scaffold(
+          backgroundColor: Color(0xFFF9FBE7),
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.eco_rounded,
+                  size: 80,
+                  color: Color(0xFF2E7D32),
+                ),
+                SizedBox(height: 24),
+                CircularProgressIndicator(
+                  color: Color(0xFF2E7D32),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      error: (err, stack) => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          body: Center(
+            child: Text('Error: $err'),
+          ),
+        ),
+      ),
     );
   }
 }
