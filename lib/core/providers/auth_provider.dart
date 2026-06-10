@@ -36,7 +36,12 @@ class AuthNotifier extends AsyncNotifier<bool> {
 
   void _handleDeepLink(Uri uri) async {
     print('🔗 Processing incoming deep link: $uri');
-    if (uri.scheme == 'greenpoint' && uri.host == 'login-success') {
+    
+    // Check if it is a mobile deep link OR a web URL containing the token
+    final bool isMobileDeepLink = uri.scheme == 'greenpoint' && uri.host == 'login-success';
+    final bool isWebRedirect = (uri.scheme == 'http' || uri.scheme == 'https') && uri.queryParameters.containsKey('token');
+
+    if (isMobileDeepLink || isWebRedirect) {
       final token = uri.queryParameters['token'];
       if (token != null && token.isNotEmpty) {
         state = const AsyncValue.loading();

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../core/providers/auth_provider.dart';
 import 'register_screen.dart';
 
@@ -55,7 +56,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _handleLineLogin() async {
-    final url = Uri.parse('https://transaction-shop.vercel.app/api/auth/line/login?platform=mobile');
+    final String platform = kIsWeb ? 'web' : 'mobile';
+    final String redirectUrlParam = kIsWeb ? '&redirect_url=${Uri.encodeComponent(Uri.base.origin)}' : '';
+    final url = Uri.parse('https://transaction-shop.vercel.app/api/auth/line/login?platform=$platform$redirectUrlParam');
     setState(() {
       _isLoading = true;
       _errorMessage = null;
