@@ -45,27 +45,44 @@ class ProfileTab extends ConsumerWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings, color: primaryGreen),
+            icon: const Icon(Icons.logout, color: Colors.red),
             onPressed: () {
               showDialog(
                 context: context,
                 builder: (BuildContext dialogContext) {
                   return AlertDialog(
-                    title: const Text('ออกจากระบบ', style: TextStyle(fontWeight: FontWeight.bold)),
-                    content: const Text('คุณต้องการออกจากระบบสะสมแต้มใช่หรือไม่?'),
+                    title: const Text(
+                      'ออกจากระบบ',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    content: const Text(
+                      'คุณต้องการออกจากระบบสะสมแต้มใช่หรือไม่?',
+                    ),
                     actions: [
                       TextButton(
                         onPressed: () {
                           Navigator.of(dialogContext).pop();
                         },
-                        child: const Text('ยกเลิก', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                        child: const Text(
+                          'ยกเลิก',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                       TextButton(
                         onPressed: () {
                           Navigator.of(dialogContext).pop();
                           ref.read(authProvider.notifier).logout();
                         },
-                        child: const Text('ออกจากระบบ', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                        child: const Text(
+                          'ออกจากระบบ',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   );
@@ -91,7 +108,7 @@ class ProfileTab extends ConsumerWidget {
               Text(
                 profile.name.isEmpty ? 'Mr. G' : profile.name,
                 style: const TextStyle(
-                  fontSize: 24, 
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
                 ),
@@ -105,7 +122,7 @@ class ProfileTab extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              
+
               // XP Progress Bar
               SizedBox(
                 width: 220,
@@ -114,23 +131,31 @@ class ProfileTab extends ConsumerWidget {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
                       child: LinearProgressIndicator(
-                        value: profile.maxXp > 0 ? profile.currentXp / profile.maxXp : 0.7,
+                        value: profile.maxXp > 0
+                            ? profile.currentXp / profile.maxXp
+                            : 0.7,
                         minHeight: 12,
                         backgroundColor: const Color(0xFFE0E0E0),
-                        valueColor: const AlwaysStoppedAnimation<Color>(secondaryGreen),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          secondaryGreen,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      '${profile.currentXp} / ${profile.maxXp}', 
-                      style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 14)
+                      '${profile.currentXp} / ${profile.maxXp}',
+                      style: const TextStyle(
+                        color: Colors.grey,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Mascot & Speech Bubble
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,28 +166,42 @@ class ProfileTab extends ConsumerWidget {
                         'assets/images/nong_thung.png',
                         height: 90,
                         fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) => 
-                          const Icon(Icons.eco, size: 80, color: secondaryGreen),
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(
+                              Icons.eco,
+                              size: 80,
+                              color: secondaryGreen,
+                            ),
                       ),
                       const SizedBox(height: 4),
                       GestureDetector(
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => StreakScreen(
-                              plasticCount: profile.plasticReduced,
-                              streakCount: profile.streakCount,
-                            )),
+                            MaterialPageRoute(
+                              builder: (context) => StreakScreen(
+                                plasticCount: profile.plasticReduced,
+                                streakCount: profile.streakCount,
+                              ),
+                            ),
                           );
                         },
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.open_in_new, size: 16, color: secondaryGreen),
+                            Icon(
+                              Icons.open_in_new,
+                              size: 16,
+                              color: secondaryGreen,
+                            ),
                             SizedBox(width: 4),
                             Text(
-                              'ดู streak', 
-                              style: TextStyle(color: secondaryGreen, fontWeight: FontWeight.bold, fontSize: 16)
+                              'ดู streak',
+                              style: TextStyle(
+                                color: secondaryGreen,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
                           ],
                         ),
@@ -181,8 +220,8 @@ class ProfileTab extends ConsumerWidget {
                       child: const Text(
                         'น้องถุงรอคุณไปรักษ์โลกนะ ไปซื้อของโดยไม่รับถุงกันเถอะ!',
                         style: TextStyle(
-                          color: Colors.white, 
-                          fontWeight: FontWeight.bold, 
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
                           fontSize: 15,
                           height: 1.4,
                         ),
@@ -191,13 +230,17 @@ class ProfileTab extends ConsumerWidget {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Achievements
               const Text(
-                'Achievements', 
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black54)
+                'Achievements',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black54,
+                ),
               ),
               const SizedBox(height: 12),
               Row(
@@ -210,13 +253,16 @@ class ProfileTab extends ConsumerWidget {
                   _buildBadge(Icons.public, isUnlocked: false),
                 ],
               ),
-              
+
               const SizedBox(height: 40),
-              
+
               // History Section
               const Align(
                 alignment: Alignment.centerLeft,
-                child: Text('History', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                child: Text(
+                  'History',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                ),
               ),
               const SizedBox(height: 16),
               historyAsync.when(
@@ -231,15 +277,26 @@ class ProfileTab extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(tx.date, style: const TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.w500)),
+                          Text(
+                            tx.date,
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                           const SizedBox(height: 2),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Expanded(
                                 child: Text(
-                                  tx.title, 
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87),
+                                  tx.title,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: Colors.black87,
+                                  ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -247,7 +304,9 @@ class ProfileTab extends ConsumerWidget {
                               Text(
                                 '${tx.isNegative ? '-' : '+'}${tx.points} GP',
                                 style: TextStyle(
-                                  color: tx.isNegative ? Colors.red : primaryGreen,
+                                  color: tx.isNegative
+                                      ? Colors.red
+                                      : primaryGreen,
                                   fontWeight: FontWeight.w900,
                                   fontSize: 16,
                                 ),
@@ -259,14 +318,17 @@ class ProfileTab extends ConsumerWidget {
                     );
                   },
                 ),
-                loading: () => const Center(child: CircularProgressIndicator(color: primaryGreen)),
+                loading: () => const Center(
+                  child: CircularProgressIndicator(color: primaryGreen),
+                ),
                 error: (e, _) => Center(child: Text('Error: $e')),
               ),
               const SizedBox(height: 20),
             ],
           ),
         ),
-        loading: () => const Center(child: CircularProgressIndicator(color: primaryGreen)),
+        loading: () =>
+            const Center(child: CircularProgressIndicator(color: primaryGreen)),
         error: (e, _) => Center(child: Text('Error: $e')),
       ),
     );
@@ -288,9 +350,9 @@ class ProfileTab extends ConsumerWidget {
         ],
       ),
       child: Icon(
-        icon, 
-        color: isUnlocked ? Colors.white : Colors.grey, 
-        size: 28
+        icon,
+        color: isUnlocked ? Colors.white : Colors.grey,
+        size: 28,
       ),
     );
   }
