@@ -271,9 +271,24 @@ class ApiService {
       return response.data;
     } catch (e) {
       print('❌ Redeem Reward Error: $e (Using Mock Data)');
-      // คืนค่า Mock สำเร็จกรณีทดสอบ
-      await Future.delayed(const Duration(seconds: 1)); // จำลอง Network Delay
+      await Future.delayed(const Duration(seconds: 1));
       return {'success': true, 'message': 'แลกรางวัลสำเร็จ (Mock)'};
+    }
+  }
+
+  // ดึงร้านค้าใกล้เคียง
+  Future<List<dynamic>> getNearbyShops(double lat, double lng, {int radius = 5000}) async {
+    try {
+      final response = await _dio.get('/shops/nearby', queryParameters: {
+        'lat': lat,
+        'lng': lng,
+        'radius': radius,
+      });
+      _checkAndThrowError(response, 'ดึงร้านค้าใกล้เคียงล้มเหลว');
+      return response.data['data'] ?? [];
+    } catch (e) {
+      print('❌ Fetch Nearby Shops Error: $e');
+      rethrow;
     }
   }
 }

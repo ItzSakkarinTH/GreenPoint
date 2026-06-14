@@ -6,6 +6,8 @@ class Shop {
   final String? phone;
   final String? imageUrl;
   final bool isActive;
+  final double? latitude;
+  final double? longitude;
 
   Shop({
     required this.shopId,
@@ -15,9 +17,17 @@ class Shop {
     this.phone,
     this.imageUrl,
     this.isActive = true,
+    this.latitude,
+    this.longitude,
   });
 
   factory Shop.fromJson(Map<String, dynamic> json) {
+    double? lat, lng;
+    final location = json['location'];
+    if (location != null && location['coordinates'] != null) {
+      lng = (location['coordinates'][0] as num?)?.toDouble();
+      lat = (location['coordinates'][1] as num?)?.toDouble();
+    }
     return Shop(
       shopId: json['shopId'] ?? json['id'] ?? json['_id'] ?? '',
       name: json['name'] ?? '',
@@ -26,6 +36,8 @@ class Shop {
       phone: json['phone'],
       imageUrl: json['imageUrl'],
       isActive: json['isActive'] ?? true,
+      latitude: lat,
+      longitude: lng,
     );
   }
 }
