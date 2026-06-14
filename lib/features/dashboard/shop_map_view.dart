@@ -49,7 +49,7 @@ class _ShopMapViewState extends ConsumerState<ShopMapView> {
             children: [
               // เชื่อมโยงแผนที่จาก MapTiler Tile Service
               TileLayer(
-                urlTemplate: 'https://api.maptiler.com/maps/streets-v2/256/{z}/{x}/{y}.png?key=vfKDiBWtQ8VIWq7E97HB',
+                urlTemplate: 'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=vfKDiBWtQ8VIWq7E97HB',
                 userAgentPackageName: 'com.itzsakkarinth.greenpoint',
               ),
               

@@ -53,7 +53,7 @@ class _MapScreenState extends State<MapScreen> {
               children: [
                 TileLayer(
                   urlTemplate:
-                      'https://api.maptiler.com/maps/streets-v2/256/{z}/{x}/{y}.png?key=$_mapTilerKey',
+                      'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=$_mapTilerKey',
                 ),
                 MarkerLayer(
                   markers: _shops
