@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/shop_provider.dart';
 import '../../core/models/shop_model.dart';
 import 'shop_detail_screen.dart';
+import 'shop_map_view.dart';
 
 const Color primaryGreen = Color(0xFF2E7D32);
 const Color secondaryGreen = Color(0xFF66BB6A); // Lighter green for avatars/badges
@@ -18,6 +19,7 @@ class PartnerStoreTab extends ConsumerStatefulWidget {
 class _PartnerStoreTabState extends ConsumerState<PartnerStoreTab> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  int _selectedTab = 0; // 0: รายชื่อร้าน, 1: แผนที่
 
   @override
   void dispose() {
@@ -81,7 +83,6 @@ class _PartnerStoreTabState extends ConsumerState<PartnerStoreTab> {
                       hintText: 'ค้นหาร้านค้า...',
                       hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),
                       prefixIcon: const Icon(Icons.search, color: Colors.grey, size: 20),
-                      suffixIcon: const Icon(Icons.tune_rounded, color: Colors.black87, size: 20),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(vertical: 8),
                     ),
@@ -93,35 +94,55 @@ class _PartnerStoreTabState extends ConsumerState<PartnerStoreTab> {
               Row(
                 children: [
                   Expanded(
-                    child: Column(
-                      children: [
-                        const Text(
-                          'รายชื่อร้าน',
-                          style: TextStyle(
-                            color: primaryGreen,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16, // Adjusted
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedTab = 0;
+                        });
+                      },
+                      child: Column(
+                        children: [
+                          Text(
+                            'รายชื่อร้าน',
+                            style: TextStyle(
+                              color: _selectedTab == 0 ? primaryGreen : Colors.grey,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16, // Adjusted
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 6),
-                        Container(height: 2.5, color: primaryGreen),
-                      ],
+                          const SizedBox(height: 6),
+                          Container(
+                            height: 2.5,
+                            color: _selectedTab == 0 ? primaryGreen : Colors.transparent,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   Expanded(
-                    child: Column(
-                      children: [
-                        const Text(
-                          'แผนที่',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedTab = 1;
+                        });
+                      },
+                      child: Column(
+                        children: [
+                          Text(
+                            'แผนที่',
+                            style: TextStyle(
+                              color: _selectedTab == 1 ? primaryGreen : Colors.grey,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 6),
-                        Container(height: 1, color: Colors.grey.shade200),
-                      ],
+                          const SizedBox(height: 6),
+                          Container(
+                            height: 2.5,
+                            color: _selectedTab == 1 ? primaryGreen : Colors.transparent,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -130,27 +151,29 @@ class _PartnerStoreTabState extends ConsumerState<PartnerStoreTab> {
           ),
         ),
       ),
-      body: shopsAsync.when(
-        data: (shops) {
-          final filteredShops = shops.where((shop) {
-            final nameMatch = shop.name.toLowerCase().contains(_searchQuery.toLowerCase());
-            final addressMatch = shop.address?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false;
-            return nameMatch || addressMatch;
-          }).toList();
+      body: _selectedTab == 1
+          ? const ShopMapView()
+          : shopsAsync.when(
+              data: (shops) {
+                final filteredShops = shops.where((shop) {
+                  final nameMatch = shop.name.toLowerCase().contains(_searchQuery.toLowerCase());
+                  final addressMatch = shop.address?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false;
+                  return nameMatch || addressMatch;
+                }).toList();
 
-          return filteredShops.isEmpty 
-            ? const Center(child: Text('ไม่พบร้านค้า'))
-            : ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                itemCount: filteredShops.length,
-                itemBuilder: (context, index) {
-                  return _buildStoreItem(context, ref, filteredShops[index]);
-                },
-              );
-        },
-        loading: () => const Center(child: CircularProgressIndicator(color: primaryGreen)),
-        error: (err, stack) => Center(child: Text('เกิดข้อผิดพลาด: $err')),
-      ),
+                return filteredShops.isEmpty
+                    ? const Center(child: Text('ไม่พบร้านค้า'))
+                    : ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                        itemCount: filteredShops.length,
+                        itemBuilder: (context, index) {
+                          return _buildStoreItem(context, ref, filteredShops[index]);
+                        },
+                      );
+              },
+              loading: () => const Center(child: CircularProgressIndicator(color: primaryGreen)),
+              error: (err, stack) => Center(child: Text('เกิดข้อผิดพลาด: $err')),
+            ),
     );
   }
 

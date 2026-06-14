@@ -22,12 +22,21 @@ class Shop {
   });
 
   factory Shop.fromJson(Map<String, dynamic> json) {
-    double? lat, lng;
+    // Parse location coordinates: [longitude, latitude]
     final location = json['location'];
-    if (location != null && location['coordinates'] != null) {
-      lng = (location['coordinates'][0] as num?)?.toDouble();
-      lat = (location['coordinates'][1] as num?)?.toDouble();
+    double? lat;
+    double? lng;
+    if (location != null && location['coordinates'] is List) {
+      final coords = location['coordinates'] as List;
+      if (coords.length >= 2) {
+        lng = (coords[0] as num?)?.toDouble();
+        lat = (coords[1] as num?)?.toDouble();
+      }
     }
+    // Fallback to flat fields
+    lat ??= (json['latitude'] as num?)?.toDouble();
+    lng ??= (json['longitude'] as num?)?.toDouble();
+
     return Shop(
       shopId: json['shopId'] ?? json['id'] ?? json['_id'] ?? '',
       name: json['name'] ?? '',

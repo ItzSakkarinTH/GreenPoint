@@ -4,6 +4,7 @@ import '../../core/models/shop_model.dart';
 import '../../core/providers/user_provider.dart';
 import 'product_list_screen.dart';
 import 'shop_reward_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 const Color primaryGreen = Color(0xFF004D40); 
 const Color secondaryGreen = Color(0xFFE8F5E9);
@@ -212,7 +213,15 @@ class ShopDetailScreen extends ConsumerWidget {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
-                      onPressed: () {},
+                      onPressed: () async {
+                        final String query = (shop.latitude != null && shop.longitude != null)
+                            ? '${shop.latitude},${shop.longitude}'
+                            : Uri.encodeComponent(shop.name);
+                        final Uri url = Uri.parse('https://www.google.com/maps/search/?api=1&query=$query');
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url, mode: LaunchMode.externalApplication);
+                        }
+                      },
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

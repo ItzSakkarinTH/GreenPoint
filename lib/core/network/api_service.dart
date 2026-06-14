@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -6,8 +8,19 @@ class ApiService {
   late final Dio _dio;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   
-  // URL ของตั้งค่า Next.js Backend ของคุณ
-  final String baseUrl = 'https://transaction-shop.vercel.app/api';
+  // URL ของตั้งค่า Next.js Backend ของคุณ - คืนค่าตาม Platform อัตโนมัติ
+  String get baseUrl {
+    if (kIsWeb) {
+      return 'https://transaction-shop.vercel.app/api';
+    }
+    if (Platform.isAndroid) {
+      return 'http://10.0.2.2:3000/api';
+    }
+    if (Platform.isIOS) {
+      return 'http://localhost:3000/api';
+    }
+    return 'https://transaction-shop.vercel.app/api';
+  }
 
   ApiService() {
     _dio = Dio(BaseOptions(
@@ -134,9 +147,12 @@ class ApiService {
   // ดึงประวัติธุรกรรม
   Future<List<dynamic>> getTransactionHistory() async {
     try {
-      final response = await _dio.get('/transactions/history');
+      final response = await _dio.get('/transactions/history', queryParameters: {'format': 'flutter'});
       _checkAndThrowError(response, 'ดึงข้อมูลประวัติธุรกรรมล้มเหลว');
-      return response.data;
+      if (response.data is Map && response.data.containsKey('data')) {
+        return response.data['data'] as List;
+      }
+      return response.data as List;
     } catch (e) {
       print('❌ Fetch History Error: $e (Using Mock Data)');
       // คืนค่า Mock กรณีดึงจาก Server ไม่ได้
@@ -185,7 +201,10 @@ class ApiService {
   // ดึงสินค้าแยกตามร้าน
   Future<dynamic> getProducts(String shopId) async {
     try {
-      final response = await _dio.get('/products', queryParameters: {'shopId': shopId});
+      final response = await _dio.get('/products', queryParameters: {
+        'shopId': shopId,
+        'format': 'flutter',
+      });
       _checkAndThrowError(response, 'ดึงข้อมูลสินค้าล้มเหลว');
       return response.data;
     } catch (e) {
@@ -232,7 +251,10 @@ class ApiService {
   // ดึงรายการของรางวัลของร้านค้า
   Future<dynamic> getRewards(String shopId) async {
     try {
-      final response = await _dio.get('/rewards', queryParameters: {'shopId': shopId});
+      final response = await _dio.get('/rewards', queryParameters: {
+        'shopId': shopId,
+        'format': 'flutter',
+      });
       _checkAndThrowError(response, 'ดึงความรางวัลล้มเหลว');
       return response.data;
     } catch (e) {
@@ -288,6 +310,68 @@ class ApiService {
       return response.data['data'] ?? [];
     } catch (e) {
       print('❌ Fetch Nearby Shops Error: $e');
+      rethrow;
+    }
+  }
+
+  // แปลงที่อยู่เป็นพิกัดผ่าน Proxy หลังบ้าน Next.js
+  Future<Map<String, dynamic>> geocodeAddress(String address) async {
+    try {
+      final response = await _dio.get('/maptiler/geocode', queryParameters: {'address': address});
+      _checkAndThrowError(response, 'แปลงที่อยู่เป็นพิกัดล้มเหลว');
+      return response.data;
+    } catch (e) {
+      print('❌ Geocoding Error: $e');
+      rethrow;
+    }
+  }
+
+  // ลงทะเบียนร้านค้าใหม่พร้อมระบุพิกัด
+  Future<Response> registerShop({
+    required String name,
+    String? description,
+    String? address,
+    String? phone,
+    String? imageUrl,
+    double? latitude,
+    double? longitude,
+  }) async {
+    try {
+      final response = await _dio.post('/shops', data: {
+        'name': name,
+        'description': description,
+        'address': address,
+        'phone': phone,
+        'imageUrl': imageUrl,
+        if (latitude != null) 'latitude': latitude,
+        if (longitude != null) 'longitude': longitude,
+      });
+      _checkAndThrowError(response, 'ลงทะเบียนร้านค้าล้มเหลว');
+      return response;
+    } catch (e) {
+      print('❌ Register Shop Error: $e');
+      rethrow;
+    }
+  }
+
+  // เคลมคะแนน/สะสมแต้มทางตรง
+  Future<dynamic> claimPoints({
+    required String shopId,
+    required int points,
+    required int xp,
+    required String title,
+  }) async {
+    try {
+      final response = await _dio.post('/transactions/claim', data: {
+        'shopId': shopId,
+        'points': points,
+        'xp': xp,
+        'title': title,
+      });
+      _checkAndThrowError(response, 'การเคลมคะแนนล้มเหลว');
+      return response.data;
+    } catch (e) {
+      print('❌ Claim Points Error: $e');
       rethrow;
     }
   }
