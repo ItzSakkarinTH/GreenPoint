@@ -5,7 +5,7 @@ import '../../core/models/shop_model.dart';
 import '../../core/network/api_service.dart';
 
 const Color primaryGreen = Color(0xFF2E7D32);
-const _mapTilerKey = 'vfKDiBWtQ8VIWq7E97HB';
+const _mapTilerKey = 'UoM6D3yOMbD8SnI8vcW9';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
