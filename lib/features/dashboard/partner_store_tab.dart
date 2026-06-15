@@ -185,14 +185,27 @@ class _PartnerStoreTabState extends ConsumerState<PartnerStoreTab> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center, // Center aligned
             children: [
-              // Store Avatar
-              CircleAvatar(
-                radius: 38, // Reduced from 45
-                backgroundColor: secondaryGreen.withOpacity(0.6),
-                backgroundImage: shop.imageUrl != null ? NetworkImage(shop.imageUrl!) : null,
-                child: shop.imageUrl == null 
-                  ? const Icon(Icons.store, color: Colors.white, size: 32) 
-                  : null,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(38),
+                child: shop.imageUrl != null && shop.imageUrl!.isNotEmpty
+                    ? Image.network(
+                        shop.imageUrl!,
+                        width: 76,
+                        height: 76,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          width: 76,
+                          height: 76,
+                          color: secondaryGreen.withOpacity(0.2),
+                          child: const Icon(Icons.store, color: primaryGreen, size: 32),
+                        ),
+                      )
+                    : Container(
+                        width: 76,
+                        height: 76,
+                        color: secondaryGreen.withOpacity(0.2),
+                        child: const Icon(Icons.store, color: primaryGreen, size: 32),
+                      ),
               ),
               const SizedBox(width: 16),
               Expanded(

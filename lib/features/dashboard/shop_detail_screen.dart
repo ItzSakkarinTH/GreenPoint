@@ -50,12 +50,18 @@ class ShopDetailScreen extends ConsumerWidget {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(24),
-                    child: shop.imageUrl != null
+                    child: shop.imageUrl != null && shop.imageUrl!.isNotEmpty
                         ? Image.network(
                             shop.imageUrl!,
                             height: 250,
                             width: double.infinity,
                             fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              height: 250,
+                              width: double.infinity,
+                              color: Colors.grey.shade200,
+                              child: const Icon(Icons.store, size: 80, color: Colors.grey),
+                            ),
                           )
                         : Container(
                             height: 250,
