@@ -185,20 +185,22 @@ class _PartnerStoreTabState extends ConsumerState<PartnerStoreTab> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center, // Center aligned
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(38),
+              ClipOval(
                 child: shop.imageUrl != null && shop.imageUrl!.isNotEmpty
                     ? Image.network(
                         shop.imageUrl!,
                         width: 76,
                         height: 76,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          width: 76,
-                          height: 76,
-                          color: secondaryGreen.withOpacity(0.2),
-                          child: const Icon(Icons.store, color: primaryGreen, size: 32),
-                        ),
+                        errorBuilder: (context, error, stackTrace) {
+                          print('❌ [PartnerStoreTab] Image load error for ${shop.name}: $error (URL: ${shop.imageUrl})');
+                          return Container(
+                            width: 76,
+                            height: 76,
+                            color: secondaryGreen.withOpacity(0.2),
+                            child: const Icon(Icons.store, color: primaryGreen, size: 32),
+                          );
+                        },
                       )
                     : Container(
                         width: 76,

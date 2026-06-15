@@ -11,6 +11,10 @@ class ApiService {
   // URL ของตั้งค่า Next.js Backend ของคุณ - คืนค่าตาม Platform อัตโนมัติ
   String get baseUrl {
     if (kIsWeb) {
+      final host = Uri.base.host;
+      if (host == 'localhost' || host == '127.0.0.1') {
+        return 'http://localhost:3000/api';
+      }
       return 'https://transaction-shop.vercel.app/api';
     }
     if (Platform.isAndroid) {

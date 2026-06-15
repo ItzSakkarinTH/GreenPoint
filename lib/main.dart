@@ -29,9 +29,7 @@ class MyApp extends ConsumerWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           // Modern Typography using Google Fonts
-          textTheme: GoogleFonts.interTextTheme(
-            Theme.of(context).textTheme,
-          ),
+          textTheme: GoogleFonts.interTextTheme(),
           colorScheme: ColorScheme.fromSeed(
             seedColor: const Color(0xFF2E7D32), // primaryGreen
             primary: const Color(0xFF2E7D32),
