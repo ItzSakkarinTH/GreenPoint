@@ -10,11 +10,15 @@ final shopsProvider = FutureProvider<List<Shop>>((ref) async {
   final apiService = ref.watch(apiServiceProvider);
   final responseData = await apiService.getShops();
   
+  print('🏪 Shops raw response type: ${responseData.runtimeType}');
+  print('🏪 Shops raw response: $responseData');
+  
   final list = responseData is Map 
       ? (responseData['data'] ?? responseData['shops'] ?? []) 
       : (responseData as List);
-      
-  return (list as List).map((json) => Shop.fromJson(json)).toList();
+  
+  print('🏪 Shops list length: ${(list as List).length}');
+  return list.map((json) => Shop.fromJson(json)).toList();
 });
 
 final selectedShopIdProvider = NotifierProvider<SelectedShopNotifier, String?>(() {

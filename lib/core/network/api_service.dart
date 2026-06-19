@@ -9,18 +9,13 @@ class ApiService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   
   // URL ของตั้งค่า Next.js Backend ของคุณ - คืนค่าตาม Platform อัตโนมัติ
+  // เปลี่ยนเป็น true เมื่อต้องการใช้ local backend
+  static const bool _useLocalBackend = true;
+
   String get baseUrl {
-    if (kIsWeb) {
-      final host = Uri.base.host;
-      if (host == 'localhost' || host == '127.0.0.1') {
-        return 'http://localhost:3000/api';
-      }
-      return 'https://transaction-shop.vercel.app/api';
-    }
-    if (Platform.isAndroid) {
-      return 'http://10.0.2.2:3000/api';
-    }
-    if (Platform.isIOS) {
+    if (_useLocalBackend) {
+      if (kIsWeb) return 'http://localhost:3000/api';
+      if (Platform.isAndroid) return 'http://10.0.2.2:3000/api';
       return 'http://localhost:3000/api';
     }
     return 'https://transaction-shop.vercel.app/api';
@@ -29,8 +24,8 @@ class ApiService {
   ApiService() {
     _dio = Dio(BaseOptions(
       baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
       responseType: ResponseType.json,
       validateStatus: (status) => status != null && status < 500,
     ));
@@ -127,7 +122,7 @@ class ApiService {
   // ดึงข้อมูลร้านค้าทั้งหมด
   Future<dynamic> getShops() async {
     try {
-      final response = await _dio.get('/shops');
+      final response = await _dio.get('/shops', queryParameters: {'format': 'flutter'});
       _checkAndThrowError(response, 'ดึงข้อมูลร้านค้าล้มเหลว');
       return response.data;
     } catch (e) {
