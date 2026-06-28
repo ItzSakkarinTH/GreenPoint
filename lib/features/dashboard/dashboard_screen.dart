@@ -13,6 +13,7 @@ import 'scan_screen.dart';
 import '../../core/providers/user_provider.dart';
 import '../../core/providers/event_provider.dart';
 import '../../core/models/event_model.dart';
+import '../../core/models/shop_model.dart';
 
 // กำหนดโทนสีตามดีไซน์ใหม่
 const Color primaryGreen = Color(0xFF2E7D32);
@@ -318,7 +319,7 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
                           ),
                         );
                       },
-                      child: _buildStoreCard(shop.name, shop.address ?? 'ใกล้คุณ'),
+                      child: _buildStoreCard(shop),
                     )).toList(),
               ),
             ),
@@ -499,11 +500,11 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
     );
   }
 
-  Widget _buildStoreCard(String name, String distance) {
+  Widget _buildStoreCard(Shop shop) {
     return Container(
       width: 130,
       margin: const EdgeInsets.only(right: 16),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: const Color(0xFFFDFDF4),
         borderRadius: BorderRadius.circular(16),
@@ -512,22 +513,48 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            width: 70,
+            height: 70,
             decoration: BoxDecoration(
               color: const Color(0xFFE8F5E9),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.store_rounded, color: secondaryGreen, size: 32),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: shop.logoUrl.isNotEmpty
+                  ? Image.network(
+                      shop.logoUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => const Icon(
+                        Icons.store_rounded,
+                        color: secondaryGreen,
+                        size: 32,
+                      ),
+                    )
+                  : (shop.imageUrl.isNotEmpty
+                      ? Image.network(
+                          shop.imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => const Icon(
+                            Icons.store_rounded,
+                            color: secondaryGreen,
+                            size: 32,
+                          ),
+                        )
+                      : const Icon(Icons.store_rounded, color: secondaryGreen, size: 32)),
+            ),
           ),
           const SizedBox(height: 12),
           Text(
-            name,
+            shop.name,
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
           Text(
-            distance,
+            shop.address != null && shop.address!.isNotEmpty
+                ? shop.address!
+                : 'ใกล้คุณ',
             style: const TextStyle(color: greyText, fontSize: 12),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

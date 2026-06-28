@@ -98,8 +98,8 @@ class _ShopMapViewState extends ConsumerState<ShopMapView> {
                       final isSelected = _selectedShop?.shopId == shop.shopId;
                       return Marker(
                         point: LatLng(shop.latitude!, shop.longitude!),
-                        width: 50,
-                        height: 50,
+                        width: 60,
+                        height: 65,
                         child: GestureDetector(
                           onTap: () {
                             setState(() {
@@ -110,26 +110,37 @@ class _ShopMapViewState extends ConsumerState<ShopMapView> {
                               15.5,
                             );
                           },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: isSelected ? const Color(0xFF1B5E20) : const Color(0xFF2E7D32),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Colors.black26,
-                                  blurRadius: 6,
-                                  offset: Offset(0, 3),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              // 1. ไอคอนพินแผนที่สีเขียวเป็นพื้นหลังด้านล่าง
+                              Icon(
+                                Icons.location_on,
+                                size: isSelected ? 60 : 55,
+                                color: isSelected ? const Color(0xFF1B5E20) : const Color(0xFF2E7D32),
+                              ),
+                              // 2. รูปโลโก้/โปรไฟล์ร้านวงกลมตรงกลางพิน
+                              Positioned(
+                                top: isSelected ? 6 : 5,
+                                child: Container(
+                                  width: isSelected ? 32 : 28,
+                                  height: isSelected ? 32 : 28,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white,
+                                    border: isSelected ? Border.all(color: const Color(0xFFFFC107), width: 1.5) : null,
+                                  ),
+                                  padding: const EdgeInsets.all(1.5),
+                                  child: ClipOval(
+                                    child: shop.logoUrl.isNotEmpty
+                                        ? Image.network(shop.logoUrl, fit: BoxFit.cover)
+                                        : (shop.imageUrl.isNotEmpty
+                                            ? Image.network(shop.imageUrl, fit: BoxFit.cover)
+                                            : const Icon(Icons.store, size: 16, color: Colors.grey)),
+                                  ),
                                 ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.store_rounded,
-                              color: Colors.white,
-                              size: 20,
-                            ),
+                              ),
+                            ],
                           ),
                         ),
                       );
@@ -203,9 +214,9 @@ class _ShopMapViewState extends ConsumerState<ShopMapView> {
                     // รูปภาพร้านค้า
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: _selectedShop!.imageUrl != null && _selectedShop!.imageUrl!.isNotEmpty
+                      child: _selectedShop!.imageUrl.isNotEmpty
                           ? Image.network(
-                              _selectedShop!.imageUrl!,
+                              _selectedShop!.imageUrl,
                               width: 80,
                               height: 80,
                               fit: BoxFit.cover,

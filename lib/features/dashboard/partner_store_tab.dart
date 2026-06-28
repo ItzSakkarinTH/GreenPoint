@@ -185,29 +185,21 @@ class _PartnerStoreTabState extends ConsumerState<PartnerStoreTab> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center, // Center aligned
             children: [
-              ClipOval(
-                child: shop.imageUrl != null && shop.imageUrl!.isNotEmpty
-                    ? Image.network(
-                        shop.imageUrl!,
-                        width: 76,
-                        height: 76,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          print('❌ [PartnerStoreTab] Image load error for ${shop.name}: $error (URL: ${shop.imageUrl})');
-                          return Container(
-                            width: 76,
-                            height: 76,
-                            color: secondaryGreen.withOpacity(0.2),
-                            child: const Icon(Icons.store, color: primaryGreen, size: 32),
-                          );
-                        },
-                      )
-                    : Container(
-                        width: 76,
-                        height: 76,
-                        color: secondaryGreen.withOpacity(0.2),
-                        child: const Icon(Icons.store, color: primaryGreen, size: 32),
-                      ),
+              Container(
+                width: 76,
+                height: 76,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.grey[200],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: shop.logoUrl.isNotEmpty
+                      ? Image.network(shop.logoUrl, fit: BoxFit.cover)
+                      : (shop.imageUrl.isNotEmpty
+                          ? Image.network(shop.imageUrl, fit: BoxFit.cover)
+                          : const Icon(Icons.store, size: 36, color: Colors.grey)),
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(

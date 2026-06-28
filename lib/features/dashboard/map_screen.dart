@@ -60,11 +60,41 @@ class _MapScreenState extends State<MapScreen> {
                       .where((s) => s.latitude != null && s.longitude != null)
                       .map((shop) => Marker(
                             point: LatLng(shop.latitude!, shop.longitude!),
-                            width: 40,
-                            height: 40,
+                            width: 60,
+                            height: 65,
                             child: GestureDetector(
                               onTap: () => _showShopInfo(shop),
-                              child: const Icon(Icons.store_rounded, color: primaryGreen, size: 36),
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  // 1. ไอคอนพินแผนที่สีเขียวเป็นพื้นหลังด้านล่าง
+                                  const Icon(
+                                    Icons.location_on,
+                                    size: 55,
+                                    color: Color(0xFF2E7D32), // สีเขียว GreenPoint
+                                  ),
+                                  // 2. รูปโลโก้/โปรไฟล์ร้านวงกลมตรงกลางพิน
+                                  Positioned(
+                                    top: 5,
+                                    child: Container(
+                                      width: 28,
+                                      height: 28,
+                                      decoration: const BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.white,
+                                      ),
+                                      padding: const EdgeInsets.all(1.5),
+                                      child: ClipOval(
+                                        child: shop.logoUrl.isNotEmpty
+                                            ? Image.network(shop.logoUrl, fit: BoxFit.cover)
+                                            : (shop.imageUrl.isNotEmpty
+                                                ? Image.network(shop.imageUrl, fit: BoxFit.cover)
+                                                : const Icon(Icons.store, size: 16, color: Colors.grey)),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ))
                       .toList(),

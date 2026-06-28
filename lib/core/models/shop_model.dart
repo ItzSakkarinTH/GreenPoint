@@ -4,7 +4,8 @@ class Shop {
   final String? description;
   final String? address;
   final String? phone;
-  final String? imageUrl;
+  final String imageUrl;
+  final String logoUrl;
   final bool isActive;
   final double? latitude;
   final double? longitude;
@@ -15,11 +16,23 @@ class Shop {
     this.description,
     this.address,
     this.phone,
-    this.imageUrl,
+    this.imageUrl = '',
+    this.logoUrl = '',
     this.isActive = true,
     this.latitude,
     this.longitude,
   });
+
+  // ดึงรูปโปรไฟล์โดยเช็คเงื่อนไข fallback
+  String get profileImageUrl {
+    if (logoUrl.isNotEmpty) {
+      return logoUrl;
+    } else if (imageUrl.isNotEmpty) {
+      return imageUrl;
+    } else {
+      return 'https://via.placeholder.com/150?text=Shop'; // รูปแทนกรณีไม่มีทั้งคู่
+    }
+  }
 
   factory Shop.fromJson(Map<String, dynamic> json) {
     // Parse location coordinates: [longitude, latitude]
@@ -43,7 +56,8 @@ class Shop {
       description: json['description'],
       address: json['address'],
       phone: json['phone'],
-      imageUrl: json['imageUrl'],
+      imageUrl: json['imageUrl'] ?? '',
+      logoUrl: json['logoUrl'] ?? '',
       isActive: json['isActive'] ?? true,
       latitude: lat,
       longitude: lng,

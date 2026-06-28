@@ -30,6 +30,7 @@ class _ShopRegisterScreenState extends State<ShopRegisterScreen> {
 
   // ข้อมูลของภาพถ่ายและโปรเจกต์รักษ์โลก
   File? _imageFile;
+  File? _logoFile; // 🏪 รูปโปรไฟล์ร้านค้า
   bool _noPlasticBag = false; // ♻️ เข้าร่วมโครงการไม่รับถุงพลาสติก
   int _rewardPoints = 10;    // แต้มที่ลูกค้าจะได้รับต่อครั้ง (5, 10, 20 แต้ม)
 
@@ -65,6 +66,23 @@ class _ShopRegisterScreenState extends State<ShopRegisterScreen> {
     if (image != null) {
       setState(() {
         _imageFile = File(image.path);
+      });
+    }
+  }
+
+  // --- ฟังก์ชันเลือกรูปภาพโปรไฟล์ (Logo) จากแกลเลอรี ---
+  Future<void> _pickLogo() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 400,
+      maxHeight: 400,
+      imageQuality: 85,
+    );
+
+    if (image != null) {
+      setState(() {
+        _logoFile = File(image.path);
       });
     }
   }
@@ -175,24 +193,35 @@ class _ShopRegisterScreenState extends State<ShopRegisterScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      // 1. อัปโหลดรูปภาพก่อน (หากเลือกไว้)
+      // 1. อัปโหลดรูปภาพโปรไฟล์ (Logo) ก่อน (หากเลือกไว้)
+      String finalLogoUrl = '';
+      if (_logoFile != null) {
+        _showSnackBar('กำลังอัปโหลดรูปโปรไฟล์ร้านค้า...');
+        final url = await _uploadImage(_logoFile!);
+        if (url != null) {
+          finalLogoUrl = url;
+        }
+      }
+
+      // 2. อัปโหลดรูปภาพปกหน้าร้าน (Cover)
       String finalImageUrl = '';
       if (_imageFile != null) {
-        _showSnackBar('กำลังอัปโหลดรูปภาพร้านค้า...');
+        _showSnackBar('กำลังอัปโหลดรูปปกร้านค้า...');
         final url = await _uploadImage(_imageFile!);
         if (url != null) {
           finalImageUrl = url;
         } else {
-          _showSnackBar('ไม่สามารถอัปโหลดรูปภาพได้ จะดำเนินการต่อโดยไม่มีรูปภาพ');
+          _showSnackBar('ไม่สามารถอัปโหลดรูปภาพปกได้ จะดำเนินการต่อโดยไม่มีรูปภาพปก');
         }
       }
 
-      // 2. ส่งข้อมูลสมัครสมาชิกไปยัง Backend API
+      // 3. ส่งข้อมูลสมัครสมาชิกไปยัง Backend API
       final payload = {
         'username': _usernameController.text.trim(),
         'password': _passwordController.text.trim(),
         'name': _shopNameController.text.trim(),
         'imageUrl': finalImageUrl,
+        'logoUrl': finalLogoUrl,
         'phone': _phoneController.text.trim(),
         'description': _descController.text.trim(),
         'address': _addressController.text.trim(),
@@ -303,40 +332,108 @@ class _ShopRegisterScreenState extends State<ShopRegisterScreen> {
 
                   // --- ส่วนที่ 2: โปรไฟล์ร้านค้า ---
                   _buildSectionTitle('🏪 ข้อมูลร้านค้า'),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   
-                  // พื้นที่เลือกรูปภาพร้านค้า
+                  // พื้นที่เลือกรูปภาพโปรไฟล์ร้านค้า (Logo) และรูปหน้าปก (Cover) จัดวางแบบมืออาชีพ
                   Center(
-                    child: GestureDetector(
-                      onTap: _pickImage,
-                      child: Container(
-                        width: double.infinity,
-                        height: 160,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey[400]!),
-                        ),
-                        child: _imageFile != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.file(_imageFile!, fit: BoxFit.cover),
-                              )
-                            : const Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.add_a_photo, size: 40, color: primaryColor),
-                                  SizedBox(height: 8),
-                                  Text(
-                                    'คลิกเพื่อเลือกรูปภาพร้านค้า',
-                                    style: TextStyle(color: Colors.grey),
-                                  ),
-                                ],
+                    child: Column(
+                      children: [
+                        // 1. ปุ่มเลือกรูปโปรไฟล์ร้านค้า (วงกลม)
+                        GestureDetector(
+                          onTap: _pickLogo,
+                          child: Stack(
+                            children: [
+                              Container(
+                                width: 100,
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: primaryColor, width: 2),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Colors.black12,
+                                      blurRadius: 6,
+                                      offset: Offset(0, 3),
+                                    )
+                                  ]
+                                ),
+                                child: _logoFile != null
+                                    ? ClipOval(
+                                        child: Image.file(_logoFile!, fit: BoxFit.cover),
+                                      )
+                                    : const Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.store, size: 36, color: primaryColor),
+                                          SizedBox(height: 2),
+                                          Text(
+                                            'รูปโปรไฟล์',
+                                            style: TextStyle(color: primaryColor, fontSize: 10, fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
                               ),
-                      ),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                    color: primaryColor,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'รูปโปรไฟล์ร้านค้า (แสดงบนแผนที่และหน้ารายชื่อ)',
+                          style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // 2. ปุ่มเลือกรูปปกหน้าร้านค้า (สี่เหลี่ยม)
+                        GestureDetector(
+                          onTap: _pickImage,
+                          child: Container(
+                            width: double.infinity,
+                            height: 150,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey[400]!),
+                            ),
+                            child: _imageFile != null
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.file(_imageFile!, fit: BoxFit.cover),
+                                  )
+                                : const Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.add_a_photo, size: 32, color: primaryColor),
+                                      SizedBox(height: 6),
+                                      Text(
+                                        'คลิกเพื่อเลือกรูปหน้าปก/รูปภาพหน้าร้าน',
+                                        style: TextStyle(color: Colors.grey, fontSize: 13),
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'รูปปกหน้าร้านค้า (แสดงในหน้ารายละเอียดร้าน)',
+                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   
                   TextFormField(
                     controller: _shopNameController,

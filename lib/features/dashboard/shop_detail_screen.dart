@@ -50,9 +50,9 @@ class ShopDetailScreen extends ConsumerWidget {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(24),
-                    child: shop.imageUrl != null && shop.imageUrl!.isNotEmpty
+                    child: shop.imageUrl.isNotEmpty
                         ? Image.network(
-                            shop.imageUrl!,
+                            shop.imageUrl,
                             height: 250,
                             width: double.infinity,
                             fit: BoxFit.cover,
@@ -76,33 +76,26 @@ class ShopDetailScreen extends ConsumerWidget {
                     child: Container(
                       width: 85,
                       height: 85,
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF004D40),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF004D40),
                         shape: BoxShape.circle,
-                      ),
-                      child: const Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'GreenPoint',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            'Partner',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                        border: Border.all(color: Colors.white, width: 3),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 8,
+                            offset: Offset(0, 4),
+                          )
                         ],
+                      ),
+                      child: ClipOval(
+                        child: Image.network(
+                          shop.profileImageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => const Center(
+                            child: Icon(Icons.store, color: Colors.white, size: 36),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -197,20 +190,54 @@ class ShopDetailScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
                   Container(
-                    height: 150,
                     width: double.infinity,
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
+                      color: Colors.grey.shade500.withOpacity(0.06),
                       borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey.shade300, width: 0.5),
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.map_outlined, color: Colors.grey.shade400, size: 40),
-                        const SizedBox(height: 8),
-                        Text(
-                          'แผนที่กำลังปรับปรุง',
-                          style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                        const Icon(
+                          Icons.location_on_outlined, 
+                          color: Color(0xFF2E7D32), 
+                          size: 24
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                shop.address != null && shop.address!.isNotEmpty
+                                    ? shop.address!
+                                    : 'ไม่ระบุที่อยู่',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.grey.shade800,
+                                  height: 1.4,
+                                ),
+                              ),
+                              if (shop.phone != null && shop.phone!.isNotEmpty) ...[
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.phone_outlined, color: Colors.grey, size: 16),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      shop.phone!,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
                       ],
                     ),

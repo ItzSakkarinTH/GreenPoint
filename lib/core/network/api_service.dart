@@ -332,6 +332,7 @@ class ApiService {
     String? address,
     String? phone,
     String? imageUrl,
+    String? logoUrl,
     double? latitude,
     double? longitude,
   }) async {
@@ -342,6 +343,7 @@ class ApiService {
         'address': address,
         'phone': phone,
         'imageUrl': imageUrl,
+        'logoUrl': logoUrl,
         if (latitude != null) 'latitude': latitude,
         if (longitude != null) 'longitude': longitude,
       });
