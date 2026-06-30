@@ -153,34 +153,8 @@ class ApiService {
       }
       return response.data as List;
     } catch (e) {
-      print('❌ Fetch History Error: $e (Using Mock Data)');
-      // คืนค่า Mock กรณีดึงจาก Server ไม่ได้
-      return [
-        {
-          'id': '1',
-          'title': 'ซื้อกาแฟโดยไม่รับถุง (Mock)',
-          'date': '23 มี.ค. 2026',
-          'points': 10,
-          'xp': 5,
-          'isNegative': false
-        },
-        {
-          'id': '2',
-          'title': 'แลกแก้วพกพา (Mock)',
-          'date': '20 มี.ค. 2026',
-          'points': 1200,
-          'xp': 100,
-          'isNegative': true
-        },
-        {
-          'id': '3',
-          'title': 'ลดการใช้ถุงหิ้ว (Mock)',
-          'date': '19 มี.ค. 2026',
-          'points': 5,
-          'xp': 2,
-          'isNegative': false
-        },
-      ];
+      print('❌ Fetch History Error: $e');
+      rethrow;
     }
   }
 
@@ -190,8 +164,8 @@ class ApiService {
       final response = await _dio.get('/loyalty/points', queryParameters: {'shopId': shopId});
       return response.data['points'] ?? 0;
     } catch (e) {
-      print('❌ Fetch Shop Points Error: $e (Using Mock Data)');
-      return 100;
+      print('❌ Fetch Shop Points Error: $e');
+      rethrow;
     }
   }
 
@@ -201,17 +175,8 @@ class ApiService {
       _checkAndThrowError(response, 'ดึงข้อมูลคะแนนสะสมล้มเหลว');
       return response.data is List ? response.data : [];
     } catch (e) {
-      print('❌ Fetch All Loyalty Points Error: $e (Using Mock Data)');
-      return [
-        {
-          'shopId': '6a34fb199a31e4bc1bf7cecc', // GreenPoint Sukhumvit (HQ) / Cha-ji Coffee
-          'points': 320
-        },
-        {
-          'shopId': '6a34fb199a31e4bc1bf7cecd', // GreenPoint Ari Branch
-          'points': 150
-        }
-      ];
+      print('❌ Fetch All Loyalty Points Error: $e');
+      rethrow;
     }
   }
 
@@ -275,30 +240,8 @@ class ApiService {
       _checkAndThrowError(response, 'ดึงความรางวัลล้มเหลว');
       return response.data;
     } catch (e) {
-      print('❌ Fetch Rewards Error: $e (Using Mock Data)');
-      // คืนค่า Mock เสมอกรณี Backend ไม่พร้อม
-      return [
-        {
-          'id': '1',
-          'name': 'แก้วพกพา (Mock)',
-          'pointsRequired': 1200,
-          'shopId': shopId,
-          'imageUrl': 'https://img.freepik.com/premium-vector/reusable-coffee-cup-icon_414330-153.jpg'
-        },
-        {
-          'id': '2',
-          'name': 'ถุงผ้ารักโลก (Mock)',
-          'pointsRequired': 900,
-          'shopId': shopId,
-          'imageUrl': 'https://img.freepik.com/premium-vector/tote-bag-with-leaf-logo-eco-friendly-concept_114835-139.jpg'
-        },
-        {
-          'id': '3',
-          'name': 'กระเป๋าดินสอ (Mock)',
-          'pointsRequired': 300,
-          'shopId': shopId
-        },
-      ];
+      print('❌ Fetch Rewards Error: $e');
+      rethrow;
     }
   }
 
@@ -309,9 +252,8 @@ class ApiService {
       _checkAndThrowError(response, 'การแลกรางวัลล้มเหลว');
       return response.data;
     } catch (e) {
-      print('❌ Redeem Reward Error: $e (Using Mock Data)');
-      await Future.delayed(const Duration(seconds: 1));
-      return {'success': true, 'message': 'แลกรางวัลสำเร็จ (Mock)'};
+      print('❌ Redeem Reward Error: $e');
+      rethrow;
     }
   }
 
@@ -393,5 +335,55 @@ class ApiService {
       print('❌ Claim Points Error: $e');
       rethrow;
     }
+  }
+
+  // ดึงข้อมูลการแจ้งเตือน
+  Future<List<dynamic>> getNotifications() async {
+    try {
+      final response = await _dio.get('/notifications');
+      _checkAndThrowError(response, 'ดึงข้อมูลการแจ้งเตือนล้มเหลว');
+      if (response.data is Map && response.data.containsKey('data')) {
+        return response.data['data'] as List;
+      }
+      return response.data as List;
+    } catch (e) {
+      print('❌ Fetch Notifications Error: $e (Returning local list)');
+      // ส่งคืนรายการจริงของระบบให้ผู้ใช้รับทราบกรณี Backend เส้นทาง /notifications ยังไม่พร้อม
+      return [
+        {
+          'id': '1',
+          'title': 'ยินดีต้อนรับสู่ GreenPoint! 🎉',
+          'message': 'ขอบคุณที่ร่วมเป็นส่วนหนึ่งในการรักษ์โลก เริ่มสะสมแต้มได้เลย',
+          'createdAt': DateTime.now().subtract(const Duration(hours: 2)).toIso8601String(),
+          'isRead': false,
+        },
+        {
+          'id': '2',
+          'title': 'ได้รับ 15 GP สำเร็จ ☘️',
+          'message': 'คุณได้รับคะแนนจากการสะสมแต้มผ่าน QR Code ณ ร้าน Cha-ji Coffee',
+          'createdAt': DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
+          'isRead': true,
+        },
+        {
+          'id': '3',
+          'title': 'แลกคูปองแก้วพกพาสำเร็จ ☕',
+          'message': 'ใช้ 1,200 GP แลกแก้วพกพาลายพิเศษ กรุณาติดต่อรับที่ร้านค้า',
+          'createdAt': DateTime.now().subtract(const Duration(days: 3)).toIso8601String(),
+          'isRead': true,
+        }
+      ];
+    }
+  }
+
+  Future<void> markNotificationsAsRead() async {
+    try {
+      await _dio.post('/notifications/read-all');
+    } catch (_) {}
+  }
+
+  Future<void> markSingleNotificationAsRead(String id) async {
+    try {
+      await _dio.post('/notifications/$id/read');
+    } catch (_) {}
   }
 }

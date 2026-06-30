@@ -15,6 +15,7 @@ import '../../core/models/shop_model.dart';
 import '../../core/providers/reward_provider.dart';
 import '../../core/models/reward_model.dart';
 import 'shop_reward_screen.dart';
+import '../../core/providers/notification_provider.dart';
 
 // กำหนดโทนสีตามดีไซน์ใหม่
 const Color primaryGreen = Color(0xFF2E7D32);
@@ -69,26 +70,45 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ],
       ),
       actions: [
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.notifications_none_rounded, color: primaryGreen, size: 28),
-            ),
-            Positioned(
-              right: 12,
-              top: 12,
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
+        Consumer(
+          builder: (context, ref, child) {
+            final notifications = ref.watch(notificationsProvider);
+            final unreadCount = notifications.where((n) => !n.isRead).length;
+            return Stack(
+              alignment: Alignment.center,
+              children: [
+                IconButton(
+                  onPressed: () => NotificationBottomSheet.show(context),
+                  icon: const Icon(Icons.notifications_none_rounded, color: primaryGreen, size: 28),
                 ),
-              ),
-            ),
-          ],
+                if (unreadCount > 0)
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 14,
+                        minHeight: 14,
+                      ),
+                      child: Text(
+                        '$unreadCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
         const SizedBox(width: 8),
       ],
@@ -199,7 +219,7 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
 
     // Compute highest point shop
     Shop? displayLoyaltyShop;
-    int displayPoints = 320; // Mockup default
+    int displayPoints = 0; // Backend default for new users
     
     // Find the record with the highest points
     Map<String, dynamic>? highestShopRecord;
@@ -383,7 +403,9 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
                   ),
                 ),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    ref.read(activeTabProvider.notifier).state = 1;
+                  },
                   child: const Text('ดูทั้งหมด >', style: TextStyle(color: Colors.grey, fontSize: 13)),
                 ),
               ],
@@ -1074,5 +1096,239 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
         ],
       ),
     );
+  }
+}
+
+// =========================================================================
+// 🔔 Notification Bottom Sheet Dialog
+// =========================================================================
+class NotificationBottomSheet extends ConsumerWidget {
+  const NotificationBottomSheet({super.key});
+
+  static void show(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => const NotificationBottomSheet(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notifications = ref.watch(notificationsProvider);
+    final unreadCount = notifications.where((n) => !n.isRead).length;
+
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.65,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(28),
+          topRight: Radius.circular(28),
+        ),
+      ),
+      child: Column(
+        children: [
+          // Drag handle
+          const SizedBox(height: 12),
+          Container(
+            width: 40,
+            height: 5,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Header Row
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Text(
+                      'การแจ้งเตือน',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF333333),
+                      ),
+                    ),
+                    if (unreadCount > 0) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.redAccent,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '$unreadCount ใหม่',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                if (unreadCount > 0)
+                  TextButton(
+                    onPressed: () {
+                      ref.read(notificationsProvider.notifier).markAllAsRead();
+                    },
+                    child: const Text(
+                      'อ่านทั้งหมด',
+                      style: TextStyle(
+                        color: primaryGreen,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Divider(height: 1),
+          
+          // Notifications List
+          Expanded(
+            child: notifications.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.notifications_none_rounded, size: 64, color: Colors.grey.shade300),
+                        const SizedBox(height: 12),
+                        Text(
+                          'ไม่มีการแจ้งเตือนในขณะนี้',
+                          style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: notifications.length,
+                    itemBuilder: (context, index) {
+                      final n = notifications[index];
+                      
+                      // Choose icon dynamically
+                      IconData iconData = Icons.notifications;
+                      Color iconColor = primaryGreen;
+                      if (n.title.contains('ยินดีต้อนรับ') || n.title.contains('🎉')) {
+                        iconData = Icons.celebration;
+                        iconColor = Colors.orange;
+                      } else if (n.title.contains('GP') || n.title.contains('แต้ม')) {
+                        iconData = Icons.eco;
+                        iconColor = Colors.green;
+                      } else if (n.title.contains('คูปอง') || n.title.contains('แลก')) {
+                        iconData = Icons.confirmation_number_outlined;
+                        iconColor = Colors.blue;
+                      }
+
+                      return InkWell(
+                        onTap: () {
+                          ref.read(notificationsProvider.notifier).markAsRead(n.id);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                          color: n.isRead ? Colors.transparent : const Color(0xFFF1F8F1),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Icon
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: iconColor.withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(iconData, color: iconColor, size: 20),
+                              ),
+                              const SizedBox(width: 14),
+                              
+                              // Content
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      n.title,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: n.isRead ? FontWeight.normal : FontWeight.bold,
+                                        color: const Color(0xFF333333),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      n.message,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.grey.shade600,
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      _formatTime(n.createdAt),
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        color: Colors.grey.shade400,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              
+                              // Unread dot indicator
+                              if (!n.isRead) ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  margin: const EdgeInsets.only(top: 6),
+                                  decoration: const BoxDecoration(
+                                    color: primaryGreen,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatTime(String dateStr) {
+    try {
+      DateTime dt = DateTime.parse(dateStr).toLocal();
+      Duration diff = DateTime.now().difference(dt);
+      
+      if (diff.inMinutes < 60) {
+        return '${diff.inMinutes} นาทีที่แล้ว';
+      } else if (diff.inHours < 24) {
+        return '${diff.inHours} ชั่วโมงที่แล้ว';
+      } else {
+        return '${diff.inDays} วันที่แล้ว';
+      }
+    } catch (_) {
+      return dateStr;
+    }
   }
 }

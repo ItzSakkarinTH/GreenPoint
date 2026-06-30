@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:greenpoint/core/providers/shop_provider.dart'; // ใช้ apiServiceProvider จากที่นี่
 import 'package:greenpoint/core/providers/auth_provider.dart';
 import '../models/user_model.dart';
@@ -52,14 +53,39 @@ final historyProvider = FutureProvider.autoDispose<List<Transaction>>((ref) asyn
   final apiService = ref.watch(apiServiceProvider);
   final data = await apiService.getTransactionHistory();
   
-  return (data as List).map((item) => Transaction(
-    id: item['id']?.toString() ?? '',
-    title: item['title'] ?? 'กิจกรรมรักษ์โลก',
-    date: item['date'] ?? '-',
-    points: item['points'] ?? 0,
-    xp: item['xp'] ?? 0,
-    isNegative: item['isNegative'] ?? false,
-  )).toList();
+  return data.map((item) {
+    final id = item['id']?.toString() ?? item['_id']?.toString() ?? '';
+    final title = item['title'] ?? item['description'] ?? 'กิจกรรมรักษ์โลก';
+    
+    // แปลงพิกัดวันเวลา ISO ให้อยู่ในฟอร์แมตปฏิทินไทย พ.ศ.
+    String date = item['date'] ?? item['createdAt'] ?? '-';
+    if (date != '-') {
+      try {
+        DateTime dt = DateTime.parse(date).toLocal();
+        int thaiYear = dt.year + 543;
+        date = DateFormat('dd/MM/').format(dt) + 
+            thaiYear.toString() + 
+            DateFormat(' • HH:mm').format(dt);
+      } catch (_) {}
+    }
+    
+    final int points = (item['points'] as num?)?.toInt() ?? 0;
+    final int xp = (item['xp'] as num?)?.toInt() ?? 0;
+    
+    bool isNegative = item['isNegative'] ?? false;
+    if (item['type'] == 'claim' || item['type'] == 'redeem') {
+      isNegative = true;
+    }
+    
+    return Transaction(
+      id: id,
+      title: title,
+      date: date,
+      points: points,
+      xp: xp,
+      isNegative: isNegative,
+    );
+  }).toList();
 });
 final shopPointsProvider = FutureProvider.autoDispose.family<int, String>((ref, shopId) async {
   final apiService = ref.watch(apiServiceProvider);

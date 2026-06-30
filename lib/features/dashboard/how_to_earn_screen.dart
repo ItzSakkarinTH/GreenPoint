@@ -48,42 +48,43 @@ class HowToEarnScreen extends ConsumerWidget {
                         _buildHeader(context),
                         const SizedBox(height: 24),
                         
-                        // Steps Section
+                        // Steps Section using the real asset images
                         _buildStepCard(
                           context,
                           stepNum: '1',
-                          title: 'ซื้อสินค้าที่ร้านค้าพาร์ทเนอร์',
-                          description: 'เลือกซื้อสินค้าและชำระเงินตามปกติ ณ ร้านค้าสมาชิกที่เข้าร่วมรายการ',
-                          illustration: _buildStep1Illustration(),
+                          title: 'ซื้อสินค้าที่ร้านพาร์ทเนอร์',
+                          description: 'เลือกซื้อสินค้าและชำระเงินตามปกติ',
+                          imageAsset: 'assets/images/earn_points/ซื้อสินค้าที่ร้านพาร์ทเนอร์.jpg',
                         ),
                         _buildStepCard(
                           context,
                           stepNum: '2',
                           title: 'ชำระเงินได้ทุกช่องทาง',
-                          description: 'ชำระเงินผ่านช่องทางใดก็ได้ที่คุณสะดวก ไม่ว่าจะเป็นเงินสด สแกนจ่าย หรือบัตรเครดิต',
-                          illustration: _buildStep2Illustration(),
+                          description: 'ชำระเงินผ่านช่องทางที่คุณสะดวกได้เลย',
+                          imageAsset: 'assets/images/earn_points/ชำระเงินได้ทุกช่องทาง.jpg',
+                          extraContent: _buildStep2Extra(),
                         ),
                         _buildStepCard(
                           context,
                           stepNum: '3',
                           title: 'ร้านค้าสร้าง QR Code',
-                          description: 'หลังชำระเงิน ร้านค้าจะสร้าง QR Code สำหรับรับแต้มโดยระบบคำนวณให้อัตโนมัติ (10 บาท = 1 GP)',
-                          illustration: _buildStep3Illustration(),
+                          description: 'หลังชำระเงิน ร้านค้าจะสร้าง QR Code สำหรับรับแต้มโดยระบบคำนวณแต้มให้อัตโนมัติ (10 บาท = 1 GreenPoint)',
+                          imageAsset: 'assets/images/earn_points/ร้านค้าสร้าง QR Code.jpg',
                         ),
                         _buildStepCard(
                           context,
                           stepNum: '4',
                           title: 'สแกน QR Code',
-                          description: 'เปิดแอป GreenPoint ไปที่เมนู Scan แล้วสแกน QR Code เพื่อรับแต้มเข้าบัญชีของคุณทันที',
-                          illustration: _buildStep4Illustration(),
+                          description: 'เปิดแอป GreenPoint ไปที่เมนู Scan แล้วสแกน QR Code เพื่อรับแต้มเข้าบัญชีทันที',
+                          imageAsset: 'assets/images/earn_points/สแกน QR Code.jpg',
                         ),
                         const SizedBox(height: 24),
                         
-                        // Mascot Alert Box
+                        // Bottom Celebration Banner Card
                         _buildMascotAlert(),
                         const SizedBox(height: 24),
                         
-                        // FAQ Section
+                        // FAQ Header
                         const Row(
                           children: [
                             Icon(Icons.help_outline, color: primaryGreen, size: 20),
@@ -108,7 +109,7 @@ class HowToEarnScreen extends ConsumerWidget {
               ),
             ),
             
-            // Bottom Button
+            // Bottom Action Button
             _buildBottomActionButton(context, ref, isDesktop),
           ],
         ),
@@ -118,14 +119,14 @@ class HowToEarnScreen extends ConsumerWidget {
 
   Widget _buildHeader(BuildContext context) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FDF9),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE8F5E9)),
+        color: const Color(0xFFF1F8F1),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFC8E6C9), width: 0.5),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: Column(
@@ -134,35 +135,33 @@ class HowToEarnScreen extends ConsumerWidget {
                 const Text(
                   'รับ GreenPoint ได้ง่าย ๆ',
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: 16,
                     fontWeight: FontWeight.w900,
                     color: Color(0xFF1B5E20),
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  'เพียงซื้อสินค้าที่ร้านค้าพาร์ทเนอร์ แล้วสแกน QR Code หลังชำระเงิน',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 12),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE8F5E9),
-                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: const Color(0xFFC8E6C9), width: 0.5),
                   ),
-                  child: const Text(
-                    '☘️ ทุกการใช้จ่าย 10 บาท = 1 GreenPoint',
-                    style: TextStyle(
-                      color: primaryGreen,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.eco, size: 12, color: primaryGreen),
+                      SizedBox(width: 4),
+                      Text(
+                        'ทุกการใช้จ่าย 10 บาท = 1 GreenPoint',
+                        style: TextStyle(
+                          color: primaryGreen,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -171,9 +170,14 @@ class HowToEarnScreen extends ConsumerWidget {
           const SizedBox(width: 8),
           Image.asset(
             'assets/images/nong_thung.png',
-            width: 80,
-            height: 80,
+            width: 72,
+            height: 72,
             fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) => const Icon(
+              Icons.spa_outlined,
+              size: 50,
+              color: primaryGreen,
+            ),
           ),
         ],
       ),
@@ -185,222 +189,208 @@ class HowToEarnScreen extends ConsumerWidget {
     required String stepNum,
     required String title,
     required String description,
-    required Widget illustration,
+    required String imageAsset,
+    Widget? extraContent,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade200, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Row(
+          children: [
+            // Left content side
+            Expanded(
+              flex: 11,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 20,
-                      height: 20,
-                      decoration: const BoxDecoration(
-                        color: primaryGreen,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text(
-                          stepNum,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 24,
+                          height: 24,
+                          decoration: const BoxDecoration(
+                            color: primaryGreen,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: Text(
+                              stepNum,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF333333),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: const TextStyle(
+                              color: primaryGreen,
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      description,
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 10,
+                        height: 1.4,
                       ),
                     ),
+                    if (extraContent != null) ...[
+                      const SizedBox(height: 10),
+                      extraContent,
+                    ],
                   ],
                 ),
-                const SizedBox(height: 6),
-                Padding(
-                  padding: const EdgeInsets.only(left: 28),
-                  child: Text(
-                    description,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.grey.shade600,
-                      height: 1.4,
+              ),
+            ),
+            
+            // Right image illustration side
+            Expanded(
+              flex: 9,
+              child: Container(
+                height: 140,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                ),
+                child: Image.asset(
+                  imageAsset,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    color: Colors.grey.shade100,
+                    child: const Center(
+                      child: Icon(Icons.image_outlined, color: Colors.grey, size: 24),
                     ),
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-          const SizedBox(width: 16),
-          illustration,
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildStep1Illustration() {
-    return Container(
-      width: 120,
-      height: 80,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F8F1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: const Center(
-        child: Icon(Icons.storefront, size: 36, color: primaryGreen),
-      ),
-    );
-  }
-
-  Widget _buildStep2Illustration() {
-    return Container(
-      width: 120,
-      height: 80,
-      decoration: BoxDecoration(
-        color: const Color(0xFFE3F2FD),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Stack(
-        alignment: Alignment.center,
+  Widget _buildStep2Extra() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
         children: [
-          Positioned(
-            left: 14,
-            child: Icon(Icons.credit_card, size: 24, color: Colors.blue.shade300),
-          ),
-          Positioned(
-            right: 14,
-            child: Icon(Icons.qr_code, size: 24, color: Colors.blue.shade400),
-          ),
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-            child: const Icon(Icons.check, size: 16, color: Colors.green),
-          ),
+          _buildPaymentChannelCard(Icons.payments_outlined, 'เงินสด'),
+          const SizedBox(width: 6),
+          _buildPaymentChannelCard(Icons.qr_code_scanner_outlined, 'พร้อมเพย์'),
+          const SizedBox(width: 6),
+          _buildPaymentChannelCard(Icons.credit_card_outlined, 'บัตรเครดิต/เดบิต'),
         ],
       ),
     );
   }
 
-  Widget _buildStep3Illustration() {
+  Widget _buildPaymentChannelCard(IconData icon, String label) {
     return Container(
-      width: 120,
-      height: 80,
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF3E0),
-        borderRadius: BorderRadius.circular(12),
+        color: const Color(0xFFF5F5F5),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade200, width: 0.5),
       ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.qr_code_2, size: 32, color: Colors.orange),
-            const SizedBox(height: 4),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: Colors.orange.shade200),
-              ),
-              child: const Text(
-                '15 GP',
-                style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.orange),
-              ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStep4Illustration() {
-    return Container(
-      width: 120,
-      height: 80,
-      decoration: BoxDecoration(
-        color: const Color(0xFFE8F5E9),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.qr_code_scanner, size: 28, color: primaryGreen),
-            const SizedBox(height: 4),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: primaryGreen,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: const Text(
-                '+15 GP',
-                style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ],
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 10, color: primaryGreen),
+          const SizedBox(width: 3),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 8, color: Color(0xFF333333)),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildMascotAlert() {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F8F1),
+        color: const Color(0xFFE8F5E9),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: const Color(0xFFC8E6C9),
-          width: 1.5,
-        ),
+        border: Border.all(color: const Color(0xFFC8E6C9), width: 0.5),
       ),
       child: Row(
         children: [
+          // Mascot with celebration icon
           Image.asset(
             'assets/images/nong_thung.png',
-            width: 44,
-            height: 44,
+            height: 60,
             fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) => const Icon(
+              Icons.party_mode_outlined,
+              size: 50,
+              color: primaryGreen,
+            ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '✨ รับแต้มเรียบร้อยแล้ว!',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1B5E20),
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      '🎉 รับแต้มเรียบร้อยแล้ว!',
+                      style: TextStyle(
+                        color: Color(0xFF1B5E20),
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 2),
+                SizedBox(height: 4),
                 Text(
-                  'GreenPoint ได้ถูกเพิ่มเข้าบัญชีของคุณแล้ว ขอบคุณที่ร่วมเป็นส่วนหนึ่งในการรักษ์โลก 🌿',
+                  'GreenPoint ได้ถูกเพิ่มเข้าบัญชีของคุณแล้ว\nขอบคุณที่ร่วมเป็นส่วนหนึ่งในการรักษ์โลก ☘️',
                   style: TextStyle(
+                    color: Color(0xFF2E7D32),
                     fontSize: 10,
-                    color: Colors.grey,
-                    height: 1.3,
+                    height: 1.4,
                   ),
                 ),
               ],
             ),
+          ),
+          const SizedBox(width: 8),
+          // Globe Icon
+          const Icon(
+            Icons.public,
+            size: 40,
+            color: Color(0xFF81C784),
           ),
         ],
       ),
@@ -408,83 +398,76 @@ class HowToEarnScreen extends ConsumerWidget {
   }
 
   Widget _buildFAQSection(bool isDesktop) {
-    const questions1 = [
-      {'q': 'แต้มมีอายุการใช้งานหรือไม่?', 'a': 'กรีนพอยท์ของคุณไม่มีวันหมดอายุ สามารถสะสมและเก็บไว้ใช้แลกของรางวัลที่คุณถูกใจได้ทุกเมื่อ!'},
-      {'q': 'คะแนนสะสมไม่เข้า ต้องทำอย่างไร?', 'a': 'หากแต้มไม่เข้าภายใน 24 ชม. กรุณาติดต่อฝ่ายบริการลูกค้าผ่านเมนูโปรไฟล์ หรือแนบหลักฐานใบเสร็จชำระเงินเพื่อตรวจสอบ'},
-      {'q': 'แต้มคำนวณอย่างไร?', 'a': 'คำนวณตามยอดใช้จ่ายจริงที่ร้านพาร์ทเนอร์ โดยทุกๆ 10 บาท จะได้รับ 1 GreenPoint (เศษของ 10 บาทจะไม่ถูกนำมาคิดคะแนน)'},
-    ];
-    
-    const questions2 = [
-      {'q': 'ร้านค้าใดเข้าร่วมโครงการบ้าง?', 'a': 'คุณสามารถตรวจสอบรายชื่อร้านค้าพาร์ทเนอร์ทั้งหมดได้ที่แท็บ "Partner Store" ในแอปพลิเคชัน'},
-      {'q': 'แลกของรางวัลได้ที่ไหน?', 'a': 'สามารถแลกรับของรางวัลได้ผ่านเมนูแลกของรางวัลในหน้าแรก (Home) หรือกดดูของรางวัลทั้งหมดในหน้ารายละเอียดของแต่ละร้านค้า'},
-      {'q': 'ต้องสแกนภายในระยะเวลากี่วัน?', 'a': 'แนะนำให้สแกน QR Code ทันทีหลังจากชำระเงิน หรือสแกนภายใน 3 วันนับจากวันที่ออกใบเสร็จรับเงิน'},
+    final List<Map<String, String>> faqs = [
+      {
+        'q': 'สแกน QR Code แล้วแต้มไม่เข้าทำอย่างไร?',
+        'a': 'กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต และลองสแกนใหม่อีกครั้ง หากยังไม่เข้า สามารถแจ้งเลขออเดอร์หรือใบเสร็จได้ที่เมนู "ติดต่อเรา" ในหน้าโปรไฟล์เพื่อดำเนินการตรวจสอบโดยทีมงานฝ่ายสนับสนุนครับ'
+      },
+      {
+        'q': 'GreenPoint มีวันหมดอายุหรือไม่?',
+        'a': 'แต้มสะสม GreenPoint จะไม่มีวันหมดอายุตราบใดที่คุณยังล็อกอินเข้าใช้บริการอย่างน้อยปีละ 1 ครั้ง ทำให้คุณสามารถสะสมระยะยาวเพื่อแลกรางวัลพรีเมียมได้อย่างสบายใจครับ'
+      },
+      {
+        'q': 'สามารถนำแต้มไปให้ผู้อื่นได้หรือไม่?',
+        'a': 'แต้มสะสมมีผลเฉพาะบัญชีผู้ใช้ส่วนบุคคลเท่านั้น ปัจจุบันระบบยังไม่รองรับการโอนแต้มข้ามบัญชีเพื่อความปลอดภัยในการแลกของรางวัลครับ'
+      },
+      {
+        'q': 'คำนวณแต้มสะสมอย่างไร?',
+        'a': 'ระบบจะคำนวณคะแนนให้อัตโนมัติในอัตราส่วน "ยอดใช้จ่ายทุก ๆ 10 บาทหลังหักส่วนลด = 1 GreenPoint" เศษที่ต่ำกว่า 10 บาทจะไม่ถูกนำมาคิดแต้ม'
+      },
+      {
+        'q': 'ใช้ได้กับทุกสินค้าในร้านสมาชิกหรือไม่?',
+        'a': 'แต้มสะสมจะได้จากสินค้าทั่วไปและโปรโมชั่นส่วนใหญ่ อย่างไรก็ตาม ผลิตภัณฑ์บางประเภท เช่น เครื่องดื่มแอลกอฮอล์หรือยาสูบ อาจไม่ร่วมรายการสะสมแต้มตามข้อกำหนดกฎหมาย'
+      },
+      {
+        'q': 'แลกรางวัลแล้วจะได้รับของเมื่อไหร่?',
+        'a': 'สำหรับการแลกคูปองดิจิทัล คุณจะได้รับโค้ดผ่านแอปทันที แต่หากเป็นรางวัลที่เป็นสิ่งของรักษ์โลก สินค้าจะถูกจัดส่งไปตามที่อยู่ที่ระบุภายใน 3-7 วันทำการครับ'
+      },
     ];
 
-    if (isDesktop) {
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              children: questions1.map((item) => FAQItemWidget(question: item['q']!, answer: item['a']!)).toList(),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              children: questions2.map((item) => FAQItemWidget(question: item['q']!, answer: item['a']!)).toList(),
-            ),
-          ),
-        ],
-      );
-    }
-
-    return Column(
-      children: [
-        ...questions1.map((item) => FAQItemWidget(question: item['q']!, answer: item['a']!)),
-        ...questions2.map((item) => FAQItemWidget(question: item['q']!, answer: item['a']!)),
-      ],
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: faqs.length,
+      itemBuilder: (context, index) {
+        return _FAQItem(
+          question: faqs[index]['q']!,
+          answer: faqs[index]['a']!,
+        );
+      },
     );
   }
 
   Widget _buildBottomActionButton(BuildContext context, WidgetRef ref, bool isDesktop) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
+        border: Border(top: BorderSide(color: Colors.grey.shade100, width: 1)),
       ),
       child: Center(
         child: Container(
-          constraints: BoxConstraints(maxWidth: isDesktop ? 400 : double.infinity),
+          constraints: BoxConstraints(maxWidth: isDesktop ? 600 : double.infinity),
           width: double.infinity,
           height: 48,
           child: ElevatedButton.icon(
             onPressed: () {
+              // Set dashboard tab index to 2 (Scan Screen)
               ref.read(activeTabProvider.notifier).state = 2;
-              Navigator.pop(context);
+              Navigator.pop(context); // Go back to dashboard
             },
-            icon: const Icon(Icons.qr_code_scanner, size: 20),
-            label: const Text(
-              'เริ่มสแกนรับแต้มเลย',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: primaryGreen,
               foregroundColor: Colors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
               ),
+            ),
+            icon: const Icon(Icons.qr_code_scanner, size: 20),
+            label: const Text(
+              'เริ่มสแกนรับแต้มเลย',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
           ),
         ),
@@ -493,21 +476,17 @@ class HowToEarnScreen extends ConsumerWidget {
   }
 }
 
-class FAQItemWidget extends StatefulWidget {
+class _FAQItem extends StatefulWidget {
   final String question;
   final String answer;
 
-  const FAQItemWidget({
-    super.key,
-    required this.question,
-    required this.answer,
-  });
+  const _FAQItem({required this.question, required this.answer});
 
   @override
-  State<FAQItemWidget> createState() => _FAQItemWidgetState();
+  State<_FAQItem> createState() => _FAQItemState();
 }
 
-class _FAQItemWidgetState extends State<FAQItemWidget> {
+class _FAQItemState extends State<_FAQItem> {
   bool _isExpanded = false;
 
   @override
@@ -516,56 +495,50 @@ class _FAQItemWidgetState extends State<FAQItemWidget> {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: _isExpanded ? const Color(0xFFC8E6C9) : Colors.grey.shade200,
+          width: 1,
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          InkWell(
-            onTap: () {
-              setState(() {
-                _isExpanded = !_isExpanded;
-              });
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      widget.question,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF333333),
-                      ),
-                    ),
-                  ),
-                  Icon(
-                    _isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                    size: 18,
-                    color: Colors.grey,
-                  ),
-                ],
-              ),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          title: Text(
+            widget.question,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: _isExpanded ? primaryGreen : const Color(0xFF333333),
             ),
           ),
-          if (_isExpanded)
+          onExpansionChanged: (expanded) {
+            setState(() {
+              _isExpanded = expanded;
+            });
+          },
+          trailing: Icon(
+            _isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+            color: _isExpanded ? primaryGreen : Colors.grey.shade600,
+            size: 20,
+          ),
+          children: [
             Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-              child: Text(
-                widget.answer,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.grey.shade600,
-                  height: 1.4,
+              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  widget.answer,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.grey.shade600,
+                    height: 1.5,
+                  ),
                 ),
               ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../core/providers/shop_provider.dart';
 import '../../core/providers/user_provider.dart';
 import '../../core/models/shop_model.dart';
@@ -64,77 +65,79 @@ class _PartnerStoreTabState extends ConsumerState<PartnerStoreTab> {
     super.dispose();
   }
 
-  // Maps database shops to beautiful mockup assets
-  ShopMockupData _getShopMockup(Shop shop) {
-    if (shop.name.contains('Sukhumvit')) {
-      return ShopMockupData(
-        name: 'Cha-ji Coffee',
-        logoUrl: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=80&h=80&fit=crop',
-        imageUrl: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=500&h=300&fit=crop',
-        rating: 4.8,
-        reviewsCount: 154,
-        category: 'คาเฟ่',
-        distance: '0.3 km',
-        defaultPoints: 320,
-        tags: ['Eco-Friendly', 'No Plastic'],
-      );
-    } else if (shop.name.contains('Ari')) {
-      return ShopMockupData(
-        name: 'Greenery Cafe',
-        logoUrl: 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=80&h=80&fit=crop',
-        imageUrl: 'https://images.unsplash.com/photo-1498804103079-a6351b050096?w=500&h=300&fit=crop',
-        rating: 4.6,
-        reviewsCount: 120,
-        category: 'คาเฟ่',
-        distance: '0.6 km',
-        defaultPoints: 120,
-        tags: ['Eco-Friendly', 'No Plastic'],
-      );
-    } else if (shop.name.contains('Thong Lo')) {
-      return ShopMockupData(
-        name: 'Eco Hug Shop',
-        logoUrl: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=80&h=80&fit=crop',
-        imageUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500&h=300&fit=crop',
-        rating: 4.7,
-        reviewsCount: 89,
-        category: 'ช้อปปิ้ง',
-        distance: '0.8 km',
-        defaultPoints: 95,
-        tags: ['Eco-Friendly', 'Reusable'],
-      );
-    } else if (shop.name.contains('ตึก33')) {
-      return ShopMockupData(
-        name: 'ป้านออร์แกนิก',
-        logoUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop',
-        imageUrl: 'https://images.unsplash.com/photo-1543007630-9710e4a00a20?w=500&h=300&fit=crop',
-        rating: 4.5,
-        reviewsCount: 76,
-        category: 'ร้านอาหาร',
-        distance: '1.2 km',
-        defaultPoints: 80,
-        tags: ['Organic', 'Local'],
-      );
-    } else {
-      return ShopMockupData(
-        name: 'Wheat Bakery',
-        logoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop',
-        imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&h=300&fit=crop',
-        rating: 4.4,
-        reviewsCount: 53,
-        category: 'เบเกอรี่',
-        distance: '1.5 km',
-        defaultPoints: 60,
-        tags: ['No Plastic', 'Eco-Friendly'],
-      );
+  // Maps database shops to beautiful mockup assets dynamically
+  ShopMockupData _getShopMockup(Shop shop, Position? userPos, int points) {
+    // Inferred category
+    String category = 'คาเฟ่';
+    if (shop.name.contains('บัวลอย') || shop.name.contains('หวาน')) {
+      category = 'ของหวาน';
+    } else if (shop.name.contains('ออร์แกนิก') || shop.name.contains('อาหาร')) {
+      category = 'ร้านอาหาร';
+    } else if (shop.name.contains('Shop') || shop.name.contains('ช้อป') || shop.name.contains('Hug')) {
+      category = 'ช้อปปิ้ง';
+    } else if (shop.name.contains('Bakery') || shop.name.contains('เบเกอรี่')) {
+      category = 'เบเกอรี่';
     }
+
+    final int hashCode = shop.shopId.hashCode.abs();
+    
+    // Dynamic distance calculation
+    String distance = '0.5 km';
+    if (shop.latitude != null && shop.longitude != null && userPos != null) {
+      final double distanceInMeters = Geolocator.distanceBetween(
+        userPos.latitude,
+        userPos.longitude,
+        shop.latitude!,
+        shop.longitude!,
+      );
+      final double distanceInKm = distanceInMeters / 1000.0;
+      distance = '${distanceInKm.toStringAsFixed(1)} km';
+    } else {
+      final double val = 0.2 + (hashCode % 15) / 10.0;
+      distance = '${val.toStringAsFixed(1)} km';
+    }
+
+    // Real logo and image from backend database
+    final String logo = shop.logoUrl.isNotEmpty 
+        ? shop.logoUrl 
+        : (shop.imageUrl.isNotEmpty ? shop.imageUrl : 'https://via.placeholder.com/150?text=${Uri.encodeComponent(shop.name)}');
+        
+    final String cover = shop.imageUrl.isNotEmpty 
+        ? shop.imageUrl 
+        : (shop.logoUrl.isNotEmpty ? shop.logoUrl : 'https://via.placeholder.com/150?text=${Uri.encodeComponent(shop.name)}');
+
+    final double rating = 4.2 + (hashCode % 8) / 10.0;
+    final int reviewsCount = 10 + (hashCode % 190);
+
+    final List<String> tags = ['รักษ์โลก', 'Eco-Friendly'];
+    if (hashCode % 2 == 0) {
+      tags.add('ไม่รับพลาสติก');
+    } else {
+      tags.add('แก้วพกพา');
+    }
+
+    return ShopMockupData(
+      name: shop.name,
+      logoUrl: logo,
+      imageUrl: cover,
+      rating: rating,
+      reviewsCount: reviewsCount,
+      category: category,
+      distance: distance,
+      defaultPoints: points,
+      tags: tags,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final shopsAsync = ref.watch(shopsProvider);
     final loyaltyPointsAsync = ref.watch(userLoyaltyPointsProvider);
+    final locationAsync = ref.watch(userLocationProvider);
     final double screenWidth = MediaQuery.of(context).size.width;
     final bool isDesktop = screenWidth > 600;
+
+    final Position? userPos = locationAsync.asData?.value;
 
     // Build loyalty points mapping
     Map<String, int> shopPointsMap = {};
@@ -152,7 +155,7 @@ class _PartnerStoreTabState extends ConsumerState<PartnerStoreTab> {
 
     // Compute highest point shop
     Shop? displayLoyaltyShop;
-    int displayPoints = 320;
+    int displayPoints = 0;
     Map<String, dynamic>? highestShopRecord;
     int maxPoints = -1;
 
@@ -352,13 +355,14 @@ class _PartnerStoreTabState extends ConsumerState<PartnerStoreTab> {
         ),
       ),
       body: _selectedTab == 1
-          ? const ShopMapView()
+          ? ShopMapView(onViewAll: () => setState(() => _selectedTab = 0))
           : shopsAsync.when(
               data: (shops) {
                 final String selectedCatName = _categories[_selectedCategoryIndex]['name'] as String;
 
                 final filteredShops = shops.where((shop) {
-                  final mockup = _getShopMockup(shop);
+                  final points = shopPointsMap[shop.shopId] ?? 0;
+                  final mockup = _getShopMockup(shop, userPos, points);
                   final matchesSearch = shop.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
                       (shop.address?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false);
                   
@@ -370,7 +374,8 @@ class _PartnerStoreTabState extends ConsumerState<PartnerStoreTab> {
 
                 bool showHighlight = false;
                 if (displayLoyaltyShop != null) {
-                  final mockup = _getShopMockup(displayLoyaltyShop!);
+                  final points = shopPointsMap[displayLoyaltyShop!.shopId] ?? 0;
+                  final mockup = _getShopMockup(displayLoyaltyShop!, userPos, points);
                   final matchesSearch = displayLoyaltyShop!.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
                       (displayLoyaltyShop!.address?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false);
                   final matchesCategory = selectedCatName == 'ทั้งหมด' ||
@@ -402,7 +407,11 @@ class _PartnerStoreTabState extends ConsumerState<PartnerStoreTab> {
                                 _buildHighlightShopCard(
                                   context, 
                                   displayLoyaltyShop!, 
-                                  _getShopMockup(displayLoyaltyShop!), 
+                                  _getShopMockup(
+                                    displayLoyaltyShop!, 
+                                    userPos, 
+                                    shopPointsMap[displayLoyaltyShop!.shopId] ?? 0
+                                  ), 
                                   displayPoints
                                 ),
                               ],
@@ -446,8 +455,8 @@ class _PartnerStoreTabState extends ConsumerState<PartnerStoreTab> {
                                 )
                               else
                                 ...partnerShops.map((shop) {
-                                  final mockup = _getShopMockup(shop);
-                                  final points = shopPointsMap[shop.shopId] ?? mockup.defaultPoints;
+                                  final points = shopPointsMap[shop.shopId] ?? 0;
+                                  final mockup = _getShopMockup(shop, userPos, points);
                                   return _buildStoreItem(context, ref, shop, mockup, points);
                                 }),
 

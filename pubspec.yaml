@@ -78,6 +78,8 @@ flutter:
   assets:
     - assets/images/nong_thung.png
     - assets/images/logo_greenpoint.png
+    - assets/images/badges/
+    - assets/images/earn_points/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
