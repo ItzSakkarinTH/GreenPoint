@@ -10,7 +10,7 @@ class ApiService {
   
   // URL ของตั้งค่า Next.js Backend ของคุณ - คืนค่าตาม Platform อัตโนมัติ
   // เปลี่ยนเป็น true เมื่อต้องการใช้ local backend
-  static const bool _useLocalBackend = true;
+  static const bool _useLocalBackend = false;
 
   String get baseUrl {
     if (_useLocalBackend) {
