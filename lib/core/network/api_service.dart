@@ -9,8 +9,8 @@ class ApiService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   
   // URL ของตั้งค่า Next.js Backend ของคุณ - คืนค่าตาม Platform อัตโนมัติ
-  // เปลี่ยนเป็น true เมื่อต้องการใช้ local backend
-  static const bool _useLocalBackend = true;
+  // false = ใช้ Production (Vercel) | true = ใช้ Local backend เฉพาะตอน dev
+  static const bool _useLocalBackend = false;
 
   String get baseUrl {
     if (_useLocalBackend) {
@@ -347,31 +347,8 @@ class ApiService {
       }
       return response.data as List;
     } catch (e) {
-      print('❌ Fetch Notifications Error: $e (Returning local list)');
-      // ส่งคืนรายการจริงของระบบให้ผู้ใช้รับทราบกรณี Backend เส้นทาง /notifications ยังไม่พร้อม
-      return [
-        {
-          'id': '1',
-          'title': 'ยินดีต้อนรับสู่ GreenPoint! 🎉',
-          'message': 'ขอบคุณที่ร่วมเป็นส่วนหนึ่งในการรักษ์โลก เริ่มสะสมแต้มได้เลย',
-          'createdAt': DateTime.now().subtract(const Duration(hours: 2)).toIso8601String(),
-          'isRead': false,
-        },
-        {
-          'id': '2',
-          'title': 'ได้รับ 15 GP สำเร็จ ☘️',
-          'message': 'คุณได้รับคะแนนจากการสะสมแต้มผ่าน QR Code ณ ร้าน Cha-ji Coffee',
-          'createdAt': DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
-          'isRead': true,
-        },
-        {
-          'id': '3',
-          'title': 'แลกคูปองแก้วพกพาสำเร็จ ☕',
-          'message': 'ใช้ 1,200 GP แลกแก้วพกพาลายพิเศษ กรุณาติดต่อรับที่ร้านค้า',
-          'createdAt': DateTime.now().subtract(const Duration(days: 3)).toIso8601String(),
-          'isRead': true,
-        }
-      ];
+      // หากไม่สามารถดึงข้อมูลได้ ให้ส่งคืนรายการว่าง
+      return [];
     }
   }
 
