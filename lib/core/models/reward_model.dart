@@ -5,6 +5,7 @@ class Reward {
   final int pointsRequired;
   final String? imageUrl;
   final String shopId;
+  final int stock;
 
   Reward({
     required this.id,
@@ -13,6 +14,7 @@ class Reward {
     required this.pointsRequired,
     this.imageUrl,
     required this.shopId,
+    this.stock = 999,
   });
 
   factory Reward.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class Reward {
       pointsRequired: json['pointsRequired'] ?? json['points'] ?? 0,
       imageUrl: json['imageUrl'] ?? json['image'],
       shopId: json['shopId']?.toString() ?? '',
+      stock: (json['stock'] as num?)?.toInt() ?? 999,
     );
   }
 }

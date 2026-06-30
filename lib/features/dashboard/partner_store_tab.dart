@@ -829,13 +829,18 @@ class _PartnerStoreTabState extends ConsumerState<PartnerStoreTab> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          mockup.name,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1B5E20),
+                        Flexible(
+                          child: Text(
+                            mockup.name,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1B5E20),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         const SizedBox(width: 3),
@@ -847,19 +852,24 @@ class _PartnerStoreTabState extends ConsumerState<PartnerStoreTab> {
                       children: [
                         const Icon(Icons.star, size: 12, color: Colors.orange),
                         const SizedBox(width: 2),
-                        Text(
-                          '${mockup.rating} (${mockup.reviewsCount} รีวิว) | ${mockup.category} | ${mockup.distance}',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey.shade600,
+                        Expanded(
+                          child: Text(
+                            '${mockup.rating} (${mockup.reviewsCount} รีวิว) | ${mockup.category} | ${mockup.distance}',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey.shade600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Row(
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
                       children: mockup.tags.map((t) => Container(
-                        margin: const EdgeInsets.only(right: 6),
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF1F8F1),

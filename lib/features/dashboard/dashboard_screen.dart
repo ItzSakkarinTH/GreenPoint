@@ -15,6 +15,7 @@ import '../../core/models/shop_model.dart';
 import '../../core/providers/reward_provider.dart';
 import '../../core/models/reward_model.dart';
 import 'shop_reward_screen.dart';
+import 'rewards_screen.dart';
 import '../../core/providers/notification_provider.dart';
 
 // กำหนดโทนสีตามดีไซน์ใหม่
@@ -365,10 +366,7 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ShopRewardScreen(
-                            shopId: displayLoyaltyShop!.shopId,
-                            shopName: displayLoyaltyShop!.name,
-                          ),
+                          builder: (context) => const RewardsScreen(),
                         ),
                       );
                     },
@@ -930,11 +928,10 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
           const SizedBox(width: 8),
           ElevatedButton(
             onPressed: () {
-              ref.read(selectedShopIdProvider.notifier).state = shop.shopId;
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ShopRewardScreen(shopId: shop.shopId, shopName: shop.name),
+                  builder: (context) => const RewardsScreen(),
                 ),
               );
             },
