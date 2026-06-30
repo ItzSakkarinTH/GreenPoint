@@ -386,4 +386,36 @@ class ApiService {
       await _dio.post('/notifications/$id/read');
     } catch (_) {}
   }
+
+  // อัปเดตรูปโปรไฟล์
+  Future<String> updateProfileImage(String base64Image) async {
+    try {
+      // 1. พยายามอัปโหลดขึ้น Cloudinary ผ่าน API /upload ก่อน
+      try {
+        final uploadResponse = await _dio.post('/upload', data: {
+          'file': base64Image,
+        });
+        if (uploadResponse.statusCode == 200 && uploadResponse.data['url'] != null) {
+          final imageUrl = uploadResponse.data['url'] as String;
+          // อัปเดตรูปภาพที่ได้จาก Cloudinary ลงโปรไฟล์ผู้ใช้
+          await _dio.patch('/auth/me', data: {
+            'profileImage': imageUrl,
+          });
+          return imageUrl;
+        }
+      } catch (uploadError) {
+        print('⚠️ Cloudinary upload failed, falling back to direct base64 storage: $uploadError');
+      }
+
+      // 2. หากขั้นตอนบนล้มเหลว หรือไม่มี Cloudinary ให้บันทึกแบบ Base64 ลง MongoDB โดยตรง
+      final response = await _dio.patch('/auth/me', data: {
+        'profileImage': base64Image,
+      });
+      _checkAndThrowError(response, 'อัปเดตโปรไฟล์ล้มเหลว');
+      return base64Image;
+    } catch (e) {
+      print('❌ Update Profile Image Error: $e');
+      rethrow;
+    }
+  }
 }

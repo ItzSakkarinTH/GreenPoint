@@ -8,6 +8,8 @@ import '../../core/models/shop_model.dart';
 import 'shop_detail_screen.dart';
 import 'shop_map_view.dart';
 import 'how_to_earn_screen.dart';
+import 'dashboard_screen.dart';
+import '../../core/providers/notification_provider.dart';
 
 const Color primaryGreen = Color(0xFF2E7D32);
 const Color secondaryGreen = Color(0xFF66BB6A);
@@ -226,26 +228,48 @@ class _PartnerStoreTabState extends ConsumerState<PartnerStoreTab> {
                         ),
                       ],
                     ),
-                    Stack(
-                      children: [
-                        const Icon(
-                          Icons.notifications_none_outlined,
-                          size: 26,
-                          color: Colors.grey,
-                        ),
-                        Positioned(
-                          right: 2,
-                          top: 2,
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final notifications = ref.watch(notificationsProvider);
+                        final unreadCount = notifications.where((n) => !n.isRead).length;
+                        return GestureDetector(
+                          onTap: () => NotificationBottomSheet.show(context),
+                          child: Stack(
+                            children: [
+                              const Icon(
+                                Icons.notifications_none_outlined,
+                                size: 26,
+                                color: Colors.grey,
+                              ),
+                              if (unreadCount > 0)
+                                Positioned(
+                                  right: 0,
+                                  top: 0,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(2),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 14,
+                                      minHeight: 14,
+                                    ),
+                                    child: Text(
+                                      '$unreadCount',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 8,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
-                        ),
-                      ],
+                        );
+                      },
                     ),
                   ],
                 ),

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:convert';
+import 'package:image_picker/image_picker.dart';
+import '../../core/providers/shop_provider.dart';
 import '../../core/providers/user_provider.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/models/user_model.dart';
@@ -112,7 +115,7 @@ class ProfileTab extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 1. Profile Card
-              _buildProfileCard(context, profile),
+              _buildProfileCard(context, ref, profile),
               const SizedBox(height: 16),
 
               // 2. GreenPoint Mascot
@@ -144,7 +147,7 @@ class ProfileTab extends ConsumerWidget {
   }
 
   // 1. Profile Card
-  Widget _buildProfileCard(BuildContext context, UserProfile profile) {
+  Widget _buildProfileCard(BuildContext context, WidgetRef ref, UserProfile profile) {
     final int remainingXp = profile.maxXp - profile.currentXp;
     final double xpProgress = profile.maxXp > 0 ? (profile.currentXp / profile.maxXp).clamp(0.0, 1.0) : 0.7;
 
@@ -168,34 +171,37 @@ class ProfileTab extends ConsumerWidget {
           Row(
             children: [
               // Avatar Stack
-              Stack(
-                children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.grey.shade100,
-                      border: Border.all(color: Colors.grey.shade200, width: 2),
-                    ),
-                    child: const ClipOval(
-                      child: Icon(Icons.person, size: 48, color: Colors.grey),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
+              GestureDetector(
+                onTap: () => _showImageSourcePicker(context, ref),
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                        color: Colors.grey.shade100,
+                        border: Border.all(color: Colors.grey.shade200, width: 2),
                       ),
-                      child: const Icon(Icons.camera_alt, size: 12, color: Colors.grey),
+                      child: ClipOval(
+                        child: _buildAvatar(profile.profileImage),
+                      ),
                     ),
-                  ),
-                ],
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                        ),
+                        child: const Icon(Icons.camera_alt, size: 12, color: Colors.grey),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(width: 16),
               // User Info details
@@ -897,5 +903,142 @@ class ProfileTab extends ConsumerWidget {
         );
       },
     );
+  }
+
+  Widget _buildAvatar(String profileImage) {
+    if (profileImage.isEmpty) {
+      return const Icon(Icons.person, size: 48, color: Colors.grey);
+    }
+    
+    if (profileImage.startsWith('data:image') && profileImage.contains('base64,')) {
+      try {
+        final base64Str = profileImage.split('base64,').last;
+        return Image.memory(
+          base64Decode(base64Str),
+          width: 72,
+          height: 72,
+          fit: BoxFit.cover,
+        );
+      } catch (_) {
+        return const Icon(Icons.person, size: 48, color: Colors.grey);
+      }
+    }
+
+    return Image.network(
+      profileImage,
+      width: 72,
+      height: 72,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return const Icon(Icons.person, size: 48, color: Colors.grey);
+      },
+    );
+  }
+
+  void _showImageSourcePicker(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Text(
+                'เลือกรูปภาพโปรไฟล์',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF333333)),
+              ),
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.photo_library, color: primaryGreen),
+              title: const Text('เลือกจากคลังภาพ'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickAndUploadImage(context, ref, ImageSource.gallery);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt, color: primaryGreen),
+              title: const Text('ถ่ายรูปภาพใหม่'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickAndUploadImage(context, ref, ImageSource.camera);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickAndUploadImage(BuildContext context, WidgetRef ref, ImageSource source) async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: source,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 75,
+      );
+
+      if (image == null) return;
+
+      // Show loading indicator
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+              ),
+              SizedBox(width: 16),
+              Text('กำลังอัปโหลดรูปภาพโปรไฟล์...'),
+            ],
+          ),
+          duration: Duration(seconds: 15),
+        ),
+      );
+
+      // Convert to Base64
+      final bytes = await image.readAsBytes();
+      final base64Image = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+
+      // Call API
+      final apiService = ref.read(apiServiceProvider);
+      await apiService.updateProfileImage(base64Image);
+
+      // Refresh Profile Provider
+      ref.invalidate(userProfileProvider);
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('อัปเดตรูปภาพโปรไฟล์สำเร็จ!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      print('❌ Pick/Upload Image Error: $e');
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('เกิดข้อผิดพลาดในการอัปโหลด: $e'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
   }
 }

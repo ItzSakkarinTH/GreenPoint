@@ -25,6 +25,7 @@ class UserProfile {
   final int totalPoints;
   final int streakCount;
   final int todaysPoints;
+  final String profileImage;
 
   UserProfile({
     required this.name,
@@ -35,5 +36,6 @@ class UserProfile {
     this.totalPoints = 0,
     this.streakCount = 0,
     this.todaysPoints = 0,
+    this.profileImage = '',
   });
 }
