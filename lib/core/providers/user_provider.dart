@@ -66,6 +66,11 @@ final shopPointsProvider = FutureProvider.autoDispose.family<int, String>((ref, 
   return await apiService.getUserPointsByShop(shopId);
 });
 
+final userLoyaltyPointsProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
+  final apiService = ref.watch(apiServiceProvider);
+  return await apiService.getUserLoyaltyPoints();
+});
+
 class ActiveTabNotifier extends Notifier<int> {
   @override
   int build() => 0;

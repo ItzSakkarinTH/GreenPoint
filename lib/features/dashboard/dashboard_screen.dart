@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:io';
 import 'dart:async';
+import 'package:flutter/gestures.dart';
 
-import '../../core/providers/auth_provider.dart';
 import '../../core/providers/shop_provider.dart';
 import 'partner_store_tab.dart';
 import 'profile_tab.dart';
-import 'product_list_screen.dart';
 import 'shop_detail_screen.dart';
 import 'scan_screen.dart';
 import '../../core/providers/user_provider.dart';
 import '../../core/providers/event_provider.dart';
 import '../../core/models/event_model.dart';
 import '../../core/models/shop_model.dart';
+import '../../core/providers/reward_provider.dart';
+import '../../core/models/reward_model.dart';
+import 'shop_reward_screen.dart';
 
 // กำหนดโทนสีตามดีไซน์ใหม่
 const Color primaryGreen = Color(0xFF2E7D32);
@@ -68,9 +69,26 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ],
       ),
       actions: [
-        IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.notifications_none_rounded, color: primaryGreen, size: 28),
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            IconButton(
+              onPressed: () {},
+              icon: const Icon(Icons.notifications_none_rounded, color: primaryGreen, size: 28),
+            ),
+            Positioned(
+              right: 12,
+              top: 12,
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(width: 8),
       ],
@@ -173,326 +191,741 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
   @override
   Widget build(BuildContext context) {
     final shopsAsync = ref.watch(shopsProvider);
-    final userProfileAsync = ref.watch(userProfileProvider);
     final eventsAsync = ref.watch(eventsProvider);
+    final loyaltyPointsAsync = ref.watch(userLoyaltyPointsProvider);
 
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Promo Carousel
-          eventsAsync.when(
-            data: (events) {
-              if (events.isEmpty) return _buildDefaultPromoCard();
-              
-              return Column(
-                children: [
-                  SizedBox(
-                    height: 310,
-                    child: PageView.builder(
-                      controller: _pageController,
-                      onPageChanged: (index) {
-                        setState(() {
-                          _currentPage = index;
-                        });
-                      },
-                      itemCount: events.length,
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                          child: _buildPromoCard(events[index]),
-                        );
-                      },
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isLargeDesktop = screenWidth >= 1024;
+
+    // Compute highest point shop
+    Shop? displayLoyaltyShop;
+    int displayPoints = 320; // Mockup default
+    
+    // Find the record with the highest points
+    Map<String, dynamic>? highestShopRecord;
+    int maxPoints = -1;
+    
+    loyaltyPointsAsync.whenData((records) {
+      for (final rec in records) {
+        if (rec is Map) {
+          final pts = (rec['points'] as num?)?.toInt() ?? 0;
+          if (pts > maxPoints) {
+            maxPoints = pts;
+            highestShopRecord = Map<String, dynamic>.from(rec);
+          }
+        }
+      }
+    });
+
+    if (highestShopRecord != null) {
+      final String targetShopId = highestShopRecord!['shopId']?.toString() ?? '';
+      shopsAsync.whenData((shops) {
+        for (final s in shops) {
+          if (s.shopId == targetShopId) {
+            displayLoyaltyShop = s;
+            displayPoints = maxPoints;
+            break;
+          }
+        }
+      });
+    }
+
+    // Fallback if no points record exists yet to match mockup
+    if (displayLoyaltyShop == null) {
+      shopsAsync.whenData((shops) {
+        if (shops.isNotEmpty) {
+          displayLoyaltyShop = shops.first;
+        }
+      });
+    }
+
+    return ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(
+        dragDevices: {
+          PointerDeviceKind.touch,
+          PointerDeviceKind.mouse,
+          PointerDeviceKind.trackpad,
+        },
+      ),
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 1. Promo Carousel / Event Banner
+            eventsAsync.when(
+              data: (events) {
+                if (events.isEmpty) return _buildDefaultPromoCard(isLargeDesktop);
+                
+                return Column(
+                  children: [
+                    SizedBox(
+                      height: isLargeDesktop ? 280 : 220, // Scale height to 280 on large desktop, keep 220 on mobile
+                      child: PageView.builder(
+                        controller: _pageController,
+                        onPageChanged: (index) {
+                          setState(() {
+                            _currentPage = index;
+                          });
+                        },
+                        itemCount: events.length,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                            child: _buildPromoCard(events[index], isLargeDesktop),
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                  if (events.length > 1) ...[
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(
-                        events.length,
-                        (index) => AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          margin: const EdgeInsets.only(right: 6),
-                          height: 8,
-                          width: _currentPage == index ? 24 : 8,
-                          decoration: BoxDecoration(
-                            color: _currentPage == index ? primaryGreen : Colors.grey.shade300,
-                            borderRadius: BorderRadius.circular(4),
+                    if (events.length > 1) ...[
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          events.length,
+                          (index) => AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            margin: const EdgeInsets.only(right: 6),
+                            height: 8,
+                            width: _currentPage == index ? 24 : 8,
+                            decoration: BoxDecoration(
+                              color: _currentPage == index ? primaryGreen : Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                    ],
                   ],
-                ],
-              );
-            },
-            loading: () => _buildLoadingPromoCard(),
-            error: (err, _) => _buildDefaultPromoCard(),
-          ),
-          const SizedBox(height: 32),
+                );
+              },
+              loading: () => _buildLoadingPromoCard(isLargeDesktop),
+              error: (err, _) => _buildDefaultPromoCard(isLargeDesktop),
+            ),
+            const SizedBox(height: 32),
 
-          const SizedBox(height: 32),
-
-          // Progress Section
-          userProfileAsync.when(
-            data: (profile) {
-              final todaysPoints = profile.todaysPoints;
-              const maxDailyPoints = 100;
-              final progress = (todaysPoints / maxDailyPoints).clamp(0.0, 1.0);
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            // 2. แต้มสะสมจากร้านค้า Section
+            if (displayLoyaltyShop != null) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'วันนี้สะสมแล้ว $todaysPoints / $maxDailyPoints GP',
-                    style: const TextStyle(
+                  const Text(
+                    'แต้มสะสมจากร้านค้า',
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: primaryGreen,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      minHeight: 12,
-                      backgroundColor: Colors.grey.shade200,
-                      valueColor: const AlwaysStoppedAnimation<Color>(secondaryGreen),
-                    ),
+                  TextButton(
+                    onPressed: () {},
+                    child: const Text('ดูประวัติทั้งหมด >', style: TextStyle(color: Colors.grey, fontSize: 13)),
                   ),
                 ],
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator(color: primaryGreen)),
-            error: (err, _) => const Text('Error loading profile'),
-          ),
-          const SizedBox(height: 24),
-
-          // Empty Placeholder
-          Container(
-            height: 80,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F8F1).withOpacity(0.5),
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
-          const SizedBox(height: 40),
-
-          // Stores Section
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'ร้านค้าใกล้คุณ',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: primaryGreen,
-                ),
               ),
-              TextButton.icon(
-                onPressed: () {},
-                icon: const Text('ดูทั้งหมด', style: TextStyle(color: primaryGreen)),
-                label: const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: primaryGreen),
-                style: TextButton.styleFrom(padding: EdgeInsets.zero),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          shopsAsync.when(
-            data: (shops) => SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              child: Row(
-                children: shops.isEmpty 
-                  ? [const Text('ยังไม่มีข้อมูลร้านค้า')]
-                  : shops.map((shop) => GestureDetector(
-                      onTap: () {
-                        ref.read(selectedShopIdProvider.notifier).state = shop.shopId;
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ShopDetailScreen(shop: shop),
+              const SizedBox(height: 12),
+              _buildHighestPointsCard(displayLoyaltyShop!, displayPoints),
+              const SizedBox(height: 32),
+              
+              // 4. แลกของรางวัล Rewards Section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'แลกของรางวัล Rewards',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: primaryGreen,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ShopRewardScreen(
+                            shopId: displayLoyaltyShop!.shopId,
+                            shopName: displayLoyaltyShop!.name,
                           ),
-                        );
-                      },
-                      child: _buildStoreCard(shop),
-                    )).toList(),
-              ),
-            ),
-            loading: () => const Center(child: CircularProgressIndicator(color: primaryGreen)),
-            error: (err, _) => Text('Error: $err'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPromoCard(EventModel event) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF3E0), // Light orange background
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        children: [
-          const SizedBox(height: 16),
-          if (event.imageUrl != null && event.imageUrl!.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Image.network(
-                  event.imageUrl!,
-                  height: 150,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return _buildPlaceholderImage();
-                  },
-                ),
-              ),
-            )
-          else
-            _buildPlaceholderImage(),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-            child: Column(
-              children: [
-                Text(
-                  event.title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2E7D32),
+                        ),
+                      );
+                    },
+                    child: const Text('ดูทั้งหมด >', style: TextStyle(color: Colors.grey, fontSize: 13)),
                   ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  event.description,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: greyText,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+                ],
+              ),
+              const SizedBox(height: 12),
+              ref.watch(shopRewardsProvider(displayLoyaltyShop!.shopId)).when(
+                data: (rewards) {
+                  if (rewards.isEmpty) return const Text('ไม่มีของรางวัลสะสมในขณะนี้');
+                  return _buildRewardListSection(rewards, displayLoyaltyShop!);
+                },
+                loading: () => const SizedBox(height: 220, child: Center(child: CircularProgressIndicator(color: primaryGreen))),
+                error: (err, _) => const Text('Error loading rewards'),
+              ),
+              const SizedBox(height: 16),
+              _buildPromoGiftBanner(displayLoyaltyShop!),
+              const SizedBox(height: 32),
+            ],
 
-  Widget _buildDefaultPromoCard() {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF3E0), // Light orange background
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        children: [
-          const SizedBox(height: 16),
-          _buildPlaceholderImage(),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16.0),
-            child: Column(
+            // 5. ร้านค้าใกล้คุณ Section
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'ยังไม่มีกิจกรรมในขณะนี้',
+                const Text(
+                  'ร้านค้าใกล้คุณ',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF2E7D32),
+                    color: primaryGreen,
                   ),
                 ),
-                SizedBox(height: 4),
-                Text(
-                  'รอติดตามกิจกรรมดีๆ เร็วๆ นี้',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: greyText,
-                  ),
+                TextButton(
+                  onPressed: () {},
+                  child: const Text('ดูทั้งหมด >', style: TextStyle(color: Colors.grey, fontSize: 13)),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPlaceholderImage() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        height: 150,
-        color: Colors.white.withOpacity(0.5),
-        child: const Stack(
-          alignment: Alignment.center,
-          children: [
-            Icon(Icons.card_giftcard_rounded, size: 80, color: Color(0xFFFFB74D)),
+            const SizedBox(height: 12),
+            shopsAsync.when(
+              data: (shops) => SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: shops.isEmpty 
+                    ? [const Text('ยังไม่มีข้อมูลร้านค้า')]
+                    : shops.map((shop) => GestureDetector(
+                        onTap: () {
+                          ref.read(selectedShopIdProvider.notifier).state = shop.shopId;
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ShopDetailScreen(shop: shop),
+                            ),
+                          );
+                        },
+                        child: _buildStoreCard(shop),
+                      )).toList(),
+                ),
+              ),
+              loading: () => const Center(child: CircularProgressIndicator(color: primaryGreen)),
+              error: (err, _) => Text('Error: $err'),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLoadingPromoCard() {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF3E0),
-        borderRadius: BorderRadius.circular(24),
+  Widget _buildPromoCard(EventModel event, bool isLargeDesktop) {
+    return GestureDetector(
+      onTap: () => _showEventDetailDialog(context, event),
+      child: Center(
+        child: Container(
+          width: double.infinity, // Expand to match parent width container
+          height: double.infinity,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F8F1), // Light green background
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0xFFC8E6C9), width: 0.5),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: event.imageUrl != null && event.imageUrl!.isNotEmpty
+                ? Image.network(
+                    event.imageUrl!,
+                    fit: BoxFit.cover, // Cover the entire container card fully on both mobile and desktop
+                    width: double.infinity,
+                    height: double.infinity,
+                    errorBuilder: (context, error, stackTrace) => _buildMockEventIllustration(),
+                  )
+                : _buildMockEventIllustration(),
+          ),
+        ),
       ),
-      child: Column(
-        children: [
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                height: 150,
-                width: double.infinity,
-                color: Colors.white.withOpacity(0.5),
-                child: const Center(
-                  child: CircularProgressIndicator(color: primaryGreen),
-                ),
+    );
+  }
+
+  Widget _buildMockEventIllustration() {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // Shopping bag
+        const Icon(Icons.shopping_bag_outlined, size: 64, color: Color(0xFF81C784)),
+        Positioned(
+          bottom: 24,
+          child: Container(
+            padding: const EdgeInsets.all(2),
+            decoration: const BoxDecoration(
+              color: Color(0xFF2E7D32),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.eco, size: 12, color: Colors.white),
+          ),
+        ),
+        // X2 badge
+        Positioned(
+          right: 8,
+          bottom: 16,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFB74D),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 1.5),
+            ),
+            child: const Text(
+              'X2',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16.0),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDefaultPromoCard(bool isLargeDesktop) {
+    return Center(
+      child: Container(
+        height: isLargeDesktop ? 280 : 220,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF1F8F1),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFFC8E6C9), width: 0.5),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: _buildMockEventIllustration(),
+        ),
+      ),
+    );
+  }
+
+
+
+  Widget _buildLoadingPromoCard(bool isLargeDesktop) {
+    return Center(
+      child: Container(
+        height: isLargeDesktop ? 280 : 220,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF1F8F1),
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(color: primaryGreen),
+        ),
+      ),
+    );
+  }
+
+  void _showEventDetailDialog(BuildContext context, EventModel event) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          constraints: const BoxConstraints(maxWidth: 340), // Compact size
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Event image (compact)
+              if (event.imageUrl != null && event.imageUrl!.isNotEmpty)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    event.imageUrl!,
+                    height: 130,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      height: 130,
+                      color: const Color(0xFFE8F5E9),
+                      child: const Icon(Icons.eco, size: 48, color: primaryGreen),
+                    ),
+                  ),
+                )
+              else
+                Container(
+                  height: 130,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8F5E9),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.eco, size: 48, color: primaryGreen),
+                  ),
+                ),
+              const SizedBox(height: 12),
+              // Tag
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F5E9),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text(
+                  'กิจกรรมพิเศษ',
+                  style: TextStyle(
+                    color: Color(0xFF2E7D32),
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Title
+              Text(
+                event.title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1B5E20),
+                ),
+              ),
+              const SizedBox(height: 6),
+              // Description
+              Text(
+                event.description,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade700,
+                  height: 1.3,
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Close button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2E7D32),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'ตกลง',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHighestPointsCard(Shop shop, int points) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Logo with medal badge
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.grey.shade100,
+                  border: Border.all(color: Colors.grey.shade200, width: 1.5),
+                ),
+                child: ClipOval(
+                  child: shop.logoUrl.isNotEmpty
+                      ? Image.network(shop.logoUrl, fit: BoxFit.cover)
+                      : (shop.imageUrl.isNotEmpty
+                          ? Image.network(shop.imageUrl, fit: BoxFit.cover)
+                          : const Icon(Icons.store, color: Colors.grey, size: 28)),
+                ),
+              ),
+              Positioned(
+                bottom: -4,
+                right: -4,
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFFFC107), // Gold/Amber color
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.workspace_premium, size: 14, color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 16),
+          // Middle texts
+          Expanded(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                 Text(
-                   'กำลังโหลดกิจกรรม...',
-                   style: TextStyle(
-                     fontSize: 18,
-                     fontWeight: FontWeight.bold,
-                     color: Color(0xFF2E7D32),
-                   ),
-                 ),
-                 SizedBox(height: 4),
-                 Text(
-                   'กรุณารอสักครู่',
-                   style: TextStyle(
-                     fontSize: 14,
-                     color: greyText,
-                   ),
-                 ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8F5E9),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text(
+                    'ร้านที่สะสมแต้มมากที่สุด',
+                    style: TextStyle(
+                      color: Color(0xFF2E7D32),
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  shop.name,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  shop.description != null && shop.description!.isNotEmpty
+                      ? shop.description!
+                      : 'เดินทางสีเขียวไปด้วยกัน 🌱',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey.shade500,
+                  ),
+                ),
               ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Right points & action
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: '$points ',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF2E7D32),
+                      ),
+                    ),
+                    const TextSpan(
+                      text: 'GP',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF2E7D32),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Text(
+                'จาก 8 รายการ',
+                style: TextStyle(fontSize: 9, color: Colors.grey),
+              ),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: () {
+                  ref.read(selectedShopIdProvider.notifier).state = shop.shopId;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ShopDetailScreen(shop: shop),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2E7D32),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    'ไปที่ร้าน',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRewardListSection(List<Reward> rewards, Shop shop) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Row(
+        children: rewards.map((reward) {
+          return Container(
+            width: 140,
+            margin: const EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Reward Image
+                Container(
+                  height: 100,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: reward.imageUrl != null && reward.imageUrl!.isNotEmpty
+                        ? Image.network(reward.imageUrl!, fit: BoxFit.cover)
+                        : const Icon(Icons.redeem, size: 40, color: Colors.grey),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  reward.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: Colors.black87,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${reward.pointsRequired} แต้ม',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFFE65100),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: () {
+                    ref.read(selectedShopIdProvider.notifier).state = shop.shopId;
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ShopRewardScreen(shopId: shop.shopId, shopName: shop.name),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2E7D32),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'แลกของ',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildPromoGiftBanner(Shop shop) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1B5E20), // Dark green background
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.card_giftcard_rounded, color: Colors.white, size: 24),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text(
+              'ใช้แต้มแลกของรางวัลหรือคูปองส่วนลด\nของรางวัลจัดส่งทั่วโลก และส่วนลดจากร้านค้าที่คุณรัก!',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 10,
+                height: 1.3,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            onPressed: () {
+              ref.read(selectedShopIdProvider.notifier).state = shop.shopId;
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ShopRewardScreen(shopId: shop.shopId, shopName: shop.name),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2E7D32),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 0,
+            ),
+            child: const Text(
+              'ไปหน้า Rewards',
+              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -501,63 +934,142 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
   }
 
   Widget _buildStoreCard(Shop shop) {
+    // Generate mock distances, ratings and tags based on shop names for accuracy
+    String distance = '0.5 km';
+    double rating = 4.7;
+    String tag = 'คาเฟ่รักษ์โลก';
+    if (shop.name.contains('Thong Lo')) {
+      distance = '0.3 km';
+      rating = 4.8;
+      tag = 'กาแฟ & เบเกอรี่';
+    } else if (shop.name.contains('Sukhumvit')) {
+      distance = '0.6 km';
+      rating = 4.6;
+      tag = 'คาเฟ่เพื่อสิ่งแวดล้อม';
+    } else if (shop.name.contains('Ari')) {
+      distance = '0.8 km';
+      rating = 4.7;
+      tag = 'สินค้าเพื่อโลก';
+    } else if (shop.name.contains('ตึก33')) {
+      distance = '0.1 km';
+      rating = 4.9;
+      tag = 'คัดสรรธรรมชาติ';
+    }
+    
     return Container(
-      width: 130,
+      width: 140,
       margin: const EdgeInsets.only(right: 16),
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFDFDF4),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.01),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 70,
-            height: 70,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE8F5E9),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: shop.logoUrl.isNotEmpty
-                  ? Image.network(
-                      shop.logoUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => const Icon(
-                        Icons.store_rounded,
-                        color: secondaryGreen,
-                        size: 32,
+          // Cover Image with distance badge
+          Stack(
+            children: [
+              Container(
+                height: 100,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: shop.imageUrl.isNotEmpty
+                      ? Image.network(shop.imageUrl, fit: BoxFit.cover)
+                      : const Icon(Icons.store, size: 40, color: Colors.grey),
+                ),
+              ),
+              Positioned(
+                bottom: 8,
+                left: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.6),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    distance,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  shop.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: Colors.black87,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  tag,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.grey.shade500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Icon(Icons.star_rounded, color: Color(0xFFFFC107), size: 14),
+                    const SizedBox(width: 2),
+                    Text(
+                      rating.toString(),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
                       ),
-                    )
-                  : (shop.imageUrl.isNotEmpty
-                      ? Image.network(
-                          shop.imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => const Icon(
-                            Icons.store_rounded,
-                            color: secondaryGreen,
-                            size: 32,
-                          ),
-                        )
-                      : const Icon(Icons.store_rounded, color: secondaryGreen, size: 32)),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF3E0),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text(
+                        'มีโปรโมชั่น',
+                        style: TextStyle(
+                          color: Color(0xFFE65100),
+                          fontSize: 8,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            shop.name,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          Text(
-            shop.address != null && shop.address!.isNotEmpty
-                ? shop.address!
-                : 'ใกล้คุณ',
-            style: const TextStyle(color: greyText, fontSize: 12),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

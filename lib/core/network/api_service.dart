@@ -188,12 +188,30 @@ class ApiService {
   Future<int> getUserPointsByShop(String shopId) async {
     try {
       final response = await _dio.get('/loyalty/points', queryParameters: {'shopId': shopId});
-      _checkAndThrowError(response, 'ดึงคะแนนล้มเหลว');
       return response.data['points'] ?? 0;
     } catch (e) {
       print('❌ Fetch Shop Points Error: $e (Using Mock Data)');
-      // Mock คะแนนถ้าล้มเหลว (ให้ตรงกับรูป)
-      return 1200; 
+      return 100;
+    }
+  }
+
+  Future<List<dynamic>> getUserLoyaltyPoints() async {
+    try {
+      final response = await _dio.get('/loyalty/points');
+      _checkAndThrowError(response, 'ดึงข้อมูลคะแนนสะสมล้มเหลว');
+      return response.data is List ? response.data : [];
+    } catch (e) {
+      print('❌ Fetch All Loyalty Points Error: $e (Using Mock Data)');
+      return [
+        {
+          'shopId': '6a34fb199a31e4bc1bf7cecc', // GreenPoint Sukhumvit (HQ) / Cha-ji Coffee
+          'points': 320
+        },
+        {
+          'shopId': '6a34fb199a31e4bc1bf7cecd', // GreenPoint Ari Branch
+          'points': 150
+        }
+      ];
     }
   }
 
