@@ -7,6 +7,7 @@ import '../../core/providers/shop_provider.dart';
 import '../../core/models/reward_model.dart';
 import '../../core/models/shop_model.dart';
 import '../../core/utils/dialog_utils.dart';
+import 'widgets/redeem_success_dialog.dart';
 
 const Color primaryGreen = Color(0xFF2E7D32);
 const Color secondaryGreen = Color(0xFF4CAF50);
@@ -509,7 +510,7 @@ class _RewardsScreenState extends ConsumerState<RewardsScreen> {
                           
                           setState(() => _isRedeeming = false);
                           if (context.mounted) {
-                            DialogUtils.showSuccessDialog(
+                            RedeemSuccessDialog.show(
                               context: context,
                               title: 'แลกรางวัลสำเร็จ!',
                               message: 'คุณได้แลก "${reward.name}" เรียบร้อยแล้ว กรุณาติดต่อรับที่ร้านค้า ${shop.name}',
