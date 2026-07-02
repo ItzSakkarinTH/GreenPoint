@@ -7,6 +7,7 @@ import '../../core/providers/shop_provider.dart';
 import '../../core/models/reward_model.dart';
 import '../../core/utils/dialog_utils.dart';
 import 'widgets/redeem_success_dialog.dart';
+import 'widgets/premium_loading_overlay.dart';
 
 const Color primaryGreen = Color(0xFF2E7D32);
 const Color secondaryGreen = Color(0xFF4CAF50);
@@ -169,22 +170,7 @@ class _ShopRewardScreenState extends ConsumerState<ShopRewardScreen> {
           ),
         ),
         if (_isRedeeming)
-          Container(
-            color: Colors.black.withOpacity(0.5),
-            child: const Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircularProgressIndicator(color: Colors.white),
-                  SizedBox(height: 16),
-                  Text(
-                    'กำลังดำเนินการ...',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          const PremiumLoadingOverlay(message: 'กำลังดำเนินการ...'),
       ],
     );
   }
