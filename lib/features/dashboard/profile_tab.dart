@@ -538,7 +538,7 @@ class ProfileTab extends ConsumerWidget {
               groupedBadges.putIfAbsent(baseName, () => []).add(badge);
             }
 
-            final List<Widget> items = [];
+            final List<Map<String, dynamic>> displayItems = [];
             
             groupedBadges.forEach((baseName, badgesForGroup) {
               // Check which of these are unlocked by the user
@@ -558,14 +558,34 @@ class ProfileTab extends ConsumerWidget {
 
               final templateBadge = badgesForGroup.first;
               
-              items.add(_buildDynamicAchievementItem(
-                highestUnlocked?.name ?? baseName,
-                highestUnlocked?.description ?? templateBadge.description,
-                highestUnlocked?.iconUrl ?? templateBadge.iconUrl,
-                highestUnlocked != null ? _rarityToTier(highestUnlocked.rarity) : null,
-                templateBadge.criteriaType,
-              ));
+              displayItems.add({
+                'name': highestUnlocked?.name ?? baseName,
+                'description': highestUnlocked?.description ?? templateBadge.description,
+                'iconUrl': highestUnlocked?.iconUrl ?? templateBadge.iconUrl,
+                'tier': highestUnlocked != null ? _rarityToTier(highestUnlocked.rarity) : null,
+                'criteriaType': templateBadge.criteriaType,
+                'isUnlocked': highestUnlocked != null,
+              });
             });
+
+            // เรียงลำดับ: ปลดล็อกแล้ว (isUnlocked: true) ขึ้นก่อน, ยังไม่ปลดล็อกไว้ข้างหลัง
+            displayItems.sort((a, b) {
+              final bool aUnlocked = a['isUnlocked'] as bool;
+              final bool bUnlocked = b['isUnlocked'] as bool;
+              if (aUnlocked && !bUnlocked) return -1;
+              if (!aUnlocked && bUnlocked) return 1;
+              return 0;
+            });
+
+            final List<Widget> items = displayItems.map((item) {
+              return _buildDynamicAchievementItem(
+                item['name'] as String,
+                item['description'] as String,
+                item['iconUrl'] as String,
+                item['tier'] as int?,
+                item['criteriaType'] as String,
+              );
+            }).toList();
 
             return SingleChildScrollView(
               scrollDirection: Axis.horizontal,
