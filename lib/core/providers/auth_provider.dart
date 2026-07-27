@@ -65,6 +65,7 @@ class AuthNotifier extends AsyncNotifier<bool> {
       state = const AsyncValue.data(false);
       return false;
     } catch (e) {
+      print('❌ Login error: $e');
       state = const AsyncValue.data(false);
       return false;
     }
@@ -89,6 +90,7 @@ class AuthNotifier extends AsyncNotifier<bool> {
       state = const AsyncValue.data(false);
       return false;
     } catch (e) {
+      print('❌ Register error: $e');
       state = const AsyncValue.data(false);
       return false;
     }

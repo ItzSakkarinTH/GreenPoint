@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../models/user_model.dart';
+import '../models/badge_model.dart';
 
 class ApiService {
   late final Dio _dio;
@@ -131,15 +133,28 @@ class ApiService {
     }
   }
 
-  // ดึงข้อมูลโปรไฟล์ผู้ใช้
-  Future<Map<String, dynamic>> getUserProfile() async {
+  // ดึงโปรไฟล์ผู้ใช้พร้อมประวัติ Badge ที่ได้แล้ว
+  Future<UserProfile> getUserProfile() async {
     try {
-      final response = await _dio.get('/auth/me'); // เปลี่ยนเป็น endpoint จริง (ปกติคือ /auth/me หรือ /profile)
+      final response = await _dio.get('/users/profile'); // ส่ง JWT Token ใน Headers อัตโนมัติ
       _checkAndThrowError(response, 'ดึงข้อมูลโปรไฟล์ล้มเหลว');
-      return response.data;
+      return UserProfile.fromJson(response.data);
     } catch (e) {
       print('❌ Fetch Profile Error: $e');
       rethrow;
+    }
+  }
+
+  // ดึงเหรียญรางวัลทั้งหมดที่มีในระบบ (สำหรับทำหน้าภารกิจทั้งหมด)
+  Future<List<Badge>> getAllBadges() async {
+    try {
+      final response = await _dio.get('/badges');
+      _checkAndThrowError(response, 'ดึงข้อมูลเกียรติประวัติล้มเหลว');
+      final list = response.data as List? ?? [];
+      return list.map((json) => Badge.fromJson(json)).toList();
+    } catch (e) {
+      print('❌ Fetch All Badges Error: $e');
+      return [];
     }
   }
 

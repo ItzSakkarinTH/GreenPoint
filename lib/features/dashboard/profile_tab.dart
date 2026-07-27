@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
@@ -6,6 +6,7 @@ import '../../core/providers/shop_provider.dart';
 import '../../core/providers/user_provider.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/models/user_model.dart';
+import '../../core/models/badge_model.dart';
 import 'streak_screen.dart';
 import 'achievements_screen.dart';
 import 'dashboard_screen.dart';
@@ -127,7 +128,7 @@ class ProfileTab extends ConsumerWidget {
               const SizedBox(height: 24),
 
               // 4. Achievements Section
-              _buildAchievementsSection(context, profile),
+              _buildAchievementsSection(context, ref, profile),
               const SizedBox(height: 24),
 
               // 5. Activity History
@@ -476,7 +477,9 @@ class ProfileTab extends ConsumerWidget {
   }
 
   // 4. Achievements Section
-  Widget _buildAchievementsSection(BuildContext context, UserProfile profile) {
+  Widget _buildAchievementsSection(BuildContext context, WidgetRef ref, UserProfile profile) {
+    final allBadgesAsync = ref.watch(allBadgesProvider);
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -517,108 +520,138 @@ class ProfileTab extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 12),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          child: Row(
-            children: [
-              _buildAchievementItem(
-                'Eco Starter',
-                'เริ่มใช้งานแอป',
-                Icons.spa,
-                Colors.green,
-                _getHighestUnlockedTier('Eco Starter', profile),
-              ),
-              _buildAchievementItem(
-                'Green Shopper',
-                'ซื้อสินค้าจากร้านค้า',
-                Icons.shopping_cart,
-                Colors.amber,
-                _getHighestUnlockedTier('Green Shopper', profile),
-              ),
-              _buildAchievementItem(
-                'Eco Explorer',
-                'ใช้บริการหลายร้าน',
-                Icons.explore,
-                Colors.teal,
-                _getHighestUnlockedTier('Eco Explorer', profile),
-              ),
-              _buildAchievementItem(
-                'No Plastic',
-                'แลกของรางวัล',
-                Icons.card_membership,
-                Colors.blueAccent,
-                _getHighestUnlockedTier('No Plastic', profile),
-              ),
-              _buildAchievementItem(
-                'Eco Hero',
-                'สะสมแต้มระยะยาว',
-                Icons.emoji_events,
-                Colors.purple,
-                _getHighestUnlockedTier('Eco Hero', profile),
-              ),
-            ],
+        allBadgesAsync.when(
+          data: (allBadges) {
+            if (allBadges.isEmpty) {
+              return const SizedBox(
+                height: 80,
+                child: Center(
+                  child: Text('ไม่มีเกียรติประวัติ', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                ),
+              );
+            }
+            
+            // Group badges by baseName to find the highest unlocked tier for each unique badge group
+            final Map<String, List<Badge>> groupedBadges = {};
+            for (var badge in allBadges) {
+              final baseName = badge.name.replaceAll(RegExp(r'\s*\(.*\)'), '').trim();
+              groupedBadges.putIfAbsent(baseName, () => []).add(badge);
+            }
+
+            final List<Map<String, dynamic>> displayItems = [];
+            
+            groupedBadges.forEach((baseName, badgesForGroup) {
+              // Check which of these are unlocked by the user
+              Badge? highestUnlocked;
+              int highestTierValue = 99; // Lower number means higher tier: 1 = Platinum, 4 = Bronze
+              
+              for (var badge in badgesForGroup) {
+                final isUnlocked = profile.badges.any((b) => b.id == badge.id);
+                if (isUnlocked) {
+                  final tierVal = _rarityToTier(badge.rarity);
+                  if (tierVal < highestTierValue) {
+                    highestTierValue = tierVal;
+                    highestUnlocked = badge;
+                  }
+                }
+              }
+
+              final templateBadge = badgesForGroup.first;
+              
+              displayItems.add({
+                'name': highestUnlocked?.name ?? baseName,
+                'description': highestUnlocked?.description ?? templateBadge.description,
+                'iconUrl': highestUnlocked?.iconUrl ?? templateBadge.iconUrl,
+                'tier': highestUnlocked != null ? _rarityToTier(highestUnlocked.rarity) : null,
+                'criteriaType': templateBadge.criteriaType,
+                'isUnlocked': highestUnlocked != null,
+              });
+            });
+
+            // เรียงลำดับ: ปลดล็อกแล้ว (isUnlocked: true) ขึ้นก่อน, ยังไม่ปลดล็อกไว้ข้างหลัง
+            displayItems.sort((a, b) {
+              final bool aUnlocked = a['isUnlocked'] as bool;
+              final bool bUnlocked = b['isUnlocked'] as bool;
+              if (aUnlocked && !bUnlocked) return -1;
+              if (!aUnlocked && bUnlocked) return 1;
+              return 0;
+            });
+
+            final List<Widget> items = displayItems.map((item) {
+              return _buildDynamicAchievementItem(
+                item['name'] as String,
+                item['description'] as String,
+                item['iconUrl'] as String,
+                item['tier'] as int?,
+                item['criteriaType'] as String,
+              );
+            }).toList();
+
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(children: items),
+            );
+          },
+          loading: () => const SizedBox(
+            height: 80,
+            child: Center(child: CircularProgressIndicator(color: primaryGreen, strokeWidth: 2)),
+          ),
+          error: (err, _) => const SizedBox(
+            height: 80,
+            child: Center(
+              child: Text('โหลดข้อมูลล้มเหลว', style: TextStyle(color: Colors.redAccent, fontSize: 12)),
+            ),
           ),
         ),
       ],
     );
   }
 
-  bool _isUnlocked(String key, int tierLevel, UserProfile profile) {
-    if (key == 'Eco Starter') {
-      if (tierLevel == 4) return profile.level >= 1; // Bronze
-      if (tierLevel == 3) return profile.level >= 2; // Silver
-      if (tierLevel == 2) return profile.level >= 5; // Gold
-      if (tierLevel == 1) return profile.level >= 8; // Platinum
-    } else if (key == 'Green Shopper') {
-      if (tierLevel == 4) return profile.totalPoints >= 10;
-      if (tierLevel == 3) return profile.totalPoints >= 100;
-      if (tierLevel == 2) return profile.totalPoints >= 500;
-      if (tierLevel == 1) return profile.totalPoints >= 1000;
-    } else if (key == 'Eco Explorer') {
-      if (tierLevel == 4) return profile.level >= 1;
-      if (tierLevel == 3) return profile.level >= 2;
-      if (tierLevel == 2) return profile.level >= 4;
-      if (tierLevel == 1) return profile.level >= 7;
-    } else if (key == 'No Plastic') {
-      if (tierLevel == 4) return profile.totalPoints >= 50;
-      if (tierLevel == 3) return profile.totalPoints >= 80;
-      if (tierLevel == 2) return profile.totalPoints >= 400;
-      if (tierLevel == 1) return profile.totalPoints >= 800;
-    } else if (key == 'Eco Hero') {
-      if (tierLevel == 4) return profile.totalPoints >= 500; // Requires 500 GP for Bronze!
-      if (tierLevel == 3) return profile.totalPoints >= 800;
-      if (tierLevel == 2) return profile.totalPoints >= 1200;
-      if (tierLevel == 1) return profile.totalPoints >= 2000;
+  int _rarityToTier(String rarity) {
+    switch (rarity.toLowerCase()) {
+      case 'legendary': return 1;
+      case 'epic': return 2;
+      case 'rare': return 3;
+      case 'common': return 4;
+      default: return 4;
     }
-    return false;
   }
 
-  int? _getHighestUnlockedTier(String key, UserProfile profile) {
-    if (_isUnlocked(key, 1, profile)) return 1;
-    if (_isUnlocked(key, 2, profile)) return 2;
-    if (_isUnlocked(key, 3, profile)) return 3;
-    if (_isUnlocked(key, 4, profile)) return 4;
-    return null; // Locked completely!
-  }
-
-  Widget _buildAchievementItem(
-    String label,
+  Widget _buildDynamicAchievementItem(
+    String name,
     String desc,
-    IconData icon,
-    Color color,
+    String iconUrl,
     int? tier,
+    String criteriaType,
   ) {
     final bool isLocked = tier == null;
-    final String assetPath = isLocked 
-        ? 'assets/images/badges/lock.jpg' 
-        : 'assets/images/badges/$label $tier.jpg';
     
-    String tierText = 'ระดับบรอนซ์';
+    IconData fallbackIcon = Icons.spa;
+    Color themeColor = Colors.green;
+    if (criteriaType == 'total_points') {
+      fallbackIcon = Icons.emoji_events_rounded;
+      themeColor = Colors.amber;
+    } else if (criteriaType == 'plastic_reduced') {
+      fallbackIcon = Icons.eco_rounded;
+      themeColor = Colors.teal;
+    } else if (criteriaType == 'level') {
+      fallbackIcon = Icons.military_tech_rounded;
+      themeColor = Colors.blueAccent;
+    }
+
+    if (tier == 1) themeColor = const Color(0xFFB2DFDB); // Platinum
+    if (tier == 2) themeColor = const Color(0xFFFFE082); // Gold
+    if (tier == 3) themeColor = const Color(0xFFEEEEEE); // Silver
+    if (tier == 4) themeColor = const Color(0xFFFFCC80); // Bronze
+
+    String tierText = 'ยังไม่สำเร็จ';
     if (tier == 1) tierText = 'ระดับแพลทินัม';
     if (tier == 2) tierText = 'ระดับโกลด์';
     if (tier == 3) tierText = 'ระดับซิลเวอร์';
-    if (isLocked) tierText = 'ยังไม่สำเร็จ';
+    if (tier == 4) tierText = 'ระดับบรอนซ์';
+
+    final cleanName = name.replaceAll(RegExp(r'\s*\(.*\)'), '').trim();
 
     return Container(
       width: 76,
@@ -632,20 +665,15 @@ class ProfileTab extends ConsumerWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: isLocked ? Colors.black.withOpacity(0.02) : color.withOpacity(0.15),
+                  color: isLocked ? Colors.black.withOpacity(0.02) : themeColor.withOpacity(0.15),
                   blurRadius: 8,
                   offset: const Offset(0, 3),
                 ),
               ],
             ),
             child: ClipOval(
-              child: Image.asset(
-                assetPath,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  // Fallback decoration if asset is not found
-                  if (isLocked) {
-                    return Container(
+              child: isLocked
+                  ? Container(
                       decoration: BoxDecoration(
                         color: const Color(0xFFF1F1F1),
                         shape: BoxShape.circle,
@@ -654,35 +682,31 @@ class ProfileTab extends ConsumerWidget {
                       child: const Center(
                         child: Icon(Icons.lock, color: Colors.grey, size: 24),
                       ),
-                    );
-                  }
-                  return Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [color.withOpacity(0.85), color],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                    child: Center(
-                      child: Icon(
-                        icon,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                  );
-                },
-              ),
+                    )
+                  : (iconUrl.startsWith('http')
+                      ? Image.network(
+                          iconUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            color: themeColor,
+                            child: Center(
+                              child: Icon(fallbackIcon, color: Colors.white, size: 24),
+                            ),
+                          ),
+                        )
+                      : Container(
+                          color: themeColor,
+                          child: Center(
+                            child: Icon(fallbackIcon, color: Colors.white, size: 24),
+                          ),
+                        )),
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Text(
-            label,
+            cleanName,
             style: TextStyle(
-              fontSize: 9,
+              fontSize: 10,
               fontWeight: FontWeight.bold,
               color: isLocked ? Colors.grey : const Color(0xFF333333),
             ),
@@ -692,26 +716,13 @@ class ProfileTab extends ConsumerWidget {
           ),
           const SizedBox(height: 2),
           Text(
-            desc,
-            style: TextStyle(
-              fontSize: 7,
-              color: Colors.grey.shade500,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 1),
-          Text(
             tierText,
             style: TextStyle(
-              fontSize: 6,
-              color: isLocked ? Colors.redAccent.shade200 : color,
-              fontWeight: FontWeight.bold,
+              fontSize: 8,
+              color: isLocked ? Colors.grey : primaryGreen,
+              fontWeight: isLocked ? FontWeight.normal : FontWeight.bold,
             ),
             textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

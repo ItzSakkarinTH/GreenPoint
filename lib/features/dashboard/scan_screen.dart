@@ -32,14 +32,13 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
 
       if (!mounted) return;
       
-      final pointsAwarded = result['pointsAwarded'] ?? 0;
-      final totalPoints = result['totalPoints'] ?? 0;
-
+      final pointsAwarded = result['pointsClaimed'] ?? result['pointsAwarded'] ?? 0;
+      final totalPoints = result['totalShopPoints'] ?? result['totalPoints'] ?? 0;
 
       DialogUtils.showSuccessDialog(
         context: context,
         title: 'สแกนสำเร็จ!',
-        message: 'คุณได้รับ $pointsAwarded GP\n(รวมทั้งหมดของคุณ: $totalPoints GP)',
+        message: 'คุณได้รับ $pointsAwarded GP\n(แต้มสะสมเฉพาะร้านนี้: $totalPoints GP)',
       );
       
       // อัปเดตข้อมูลโปรไฟล์ผู้ใช้ทันที

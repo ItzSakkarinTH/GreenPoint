@@ -4,34 +4,12 @@ import 'package:intl/intl.dart';
 import 'package:greenpoint/core/providers/shop_provider.dart'; // ใช้ apiServiceProvider จากที่นี่
 import 'package:greenpoint/core/providers/auth_provider.dart';
 import '../models/user_model.dart';
+import '../models/badge_model.dart';
 
 final userProfileProvider = FutureProvider.autoDispose<UserProfile>((ref) async {
   final apiService = ref.watch(apiServiceProvider);
   try {
-    final responseData = await apiService.getUserProfile();
-    print('👤 User Profile Data: $responseData'); // Debug log
-
-    // ลองดึง User Data จากหลายๆ รูปแบบ (top level, user, หรือ data)
-    final userData = responseData['user'] ?? responseData['data'] ?? responseData;
-    
-    // พยายามหาชื่อที่จะแสดงผล โดยเรียงลำดับความสำคัญ
-    final displayName = userData['name'] ?? 
-                      userData['fullName'] ?? 
-                      userData['username'] ?? 
-                      responseData['username'] ?? // กรณี username อยู่ชั้นนอกสุด
-                      'สมาชิก GreenPoint';
-    
-    return UserProfile(
-      name: displayName,
-      level: (userData['level'] as num?)?.toInt() ?? 1,
-      currentXp: (userData['currentXp'] as num?)?.toInt() ?? 0,
-      maxXp: (userData['maxXp'] as num?)?.toInt() ?? 100,
-      plasticReduced: (userData['plasticReduced'] as num?)?.toDouble() ?? 0.0,
-      totalPoints: ((userData['totalPointsEarned'] ?? userData['totalPoints'] ?? userData['points']) as num?)?.toInt() ?? 0,
-      streakCount: ((userData['streakCount'] ?? userData['streak']) as num?)?.toInt() ?? 0,
-      todaysPoints: (userData['todaysPoints'] as num?)?.toInt() ?? 0,
-      profileImage: userData['profileImage']?.toString() ?? '',
-    );
+    return await apiService.getUserProfile();
   } on DioException catch (e) {
     if (e.response?.statusCode == 401) {
       print('🔐 Unauthorized access (401), logging out...');
@@ -107,5 +85,10 @@ class ActiveTabNotifier extends Notifier<int> {
 }
 
 final activeTabProvider = NotifierProvider<ActiveTabNotifier, int>(ActiveTabNotifier.new);
+
+final allBadgesProvider = FutureProvider.autoDispose<List<Badge>>((ref) async {
+  final apiService = ref.watch(apiServiceProvider);
+  return await apiService.getAllBadges();
+});
 
 
