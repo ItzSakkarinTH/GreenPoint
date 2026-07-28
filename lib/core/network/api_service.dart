@@ -433,4 +433,52 @@ class ApiService {
       rethrow;
     }
   }
+
+  // ดึงข้อมูลเควส/ภารกิจ Green Pass
+  Future<dynamic> getQuests() async {
+    try {
+      final response = await _dio.get('/quests');
+      _checkAndThrowError(response, 'ดึงข้อมูลภารกิจล้มเหลว');
+      return response.data;
+    } catch (e) {
+      print('❌ Fetch Quests Error: $e');
+      rethrow;
+    }
+  }
+
+  // รับรางวัลเควส/ภารกิจ Green Pass
+  Future<dynamic> claimQuest(String questId) async {
+    try {
+      final response = await _dio.post('/quests', data: {'questId': questId});
+      _checkAndThrowError(response, 'รับรางวัลภารกิจล้มเหลว');
+      return response.data;
+    } catch (e) {
+      print('❌ Claim Quest Error: $e');
+      rethrow;
+    }
+  }
+
+  // ดึงระดับขั้น Green Pass และความคืบหน้า
+  Future<dynamic> getPassProgress() async {
+    try {
+      final response = await _dio.get('/pass');
+      _checkAndThrowError(response, 'ดึงข้อมูลระดับขั้น Green Pass ล้มเหลว');
+      return response.data;
+    } catch (e) {
+      print('❌ Fetch Pass Progress Error: $e');
+      rethrow;
+    }
+  }
+
+  // รับรางวัลระดับขั้น Green Pass
+  Future<dynamic> claimPassTier(int tierNumber) async {
+    try {
+      final response = await _dio.post('/pass', data: {'tierNumber': tierNumber});
+      _checkAndThrowError(response, 'รับรางวัลระดับขั้น Green Pass ล้มเหลว');
+      return response.data;
+    } catch (e) {
+      print('❌ Claim Pass Tier Error: $e');
+      rethrow;
+    }
+  }
 }
