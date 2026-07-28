@@ -297,7 +297,7 @@ class _AllQuestsScreenState extends ConsumerState<AllQuestsScreen> {
 
           // Reward text & Claim action
           if (quest.isClaimed) ...[
-            const Icon(Icons.check_circle_rounded, color: themeColor, size: 20)
+            Icon(Icons.check_circle_rounded, color: themeColor, size: 20)
           ] else if (isCompletedAndUnclaimed) ...[
             ElevatedButton(
               onPressed: () => _claimQuestReward(quest),
