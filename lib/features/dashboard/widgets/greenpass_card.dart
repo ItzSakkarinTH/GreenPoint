@@ -316,15 +316,15 @@ class GreenPassCard extends ConsumerWidget {
       // Completed but unclaimed: show glowing claim badge
       isClickable = true;
       checkWidget = Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
-          color: Colors.orange.shade50,
+          color: const Color(0xFFE8F5E9),
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: Colors.orange.shade300, width: 1),
+          border: Border.all(color: primaryGreen, width: 1),
         ),
         child: const Text(
           'กดรับ',
-          style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.orange),
+          style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: primaryGreen),
         ),
       );
     } else {
@@ -385,15 +385,15 @@ class GreenPassCard extends ConsumerWidget {
     } else if (quest.isCompleted) {
       isClickable = true;
       statusWidget = Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
-          color: Colors.orange.shade50,
+          color: const Color(0xFFE8F5E9),
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: Colors.orange.shade300, width: 1),
+          border: Border.all(color: primaryGreen, width: 1),
         ),
         child: const Text(
           'กดรับ',
-          style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.orange),
+          style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: primaryGreen),
         ),
       );
     } else {

@@ -381,36 +381,37 @@ class GreenPassScreen extends ConsumerWidget {
       checkIndicator = const Icon(Icons.check_circle_rounded, color: primaryGreen, size: 24);
     } else if (isCompletedAndUnclaimed) {
       isClickable = true;
-      checkIndicator = Container(
-        width: 24,
-        height: 24,
-        decoration: BoxDecoration(
-          color: Colors.orange.shade50,
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.orange.shade300, width: 2),
+      checkIndicator = ElevatedButton(
+        onPressed: () => _claimQuest(context, ref, quest),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryGreen,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
-        child: const Center(
-          child: Icon(Icons.stars_rounded, size: 14, color: Colors.orange),
-        ),
+        child: const Text('กดรับ', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
       );
     } else {
       checkIndicator = Icon(Icons.circle_outlined, color: Colors.grey.shade300, size: 24);
     }
 
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isCompletedAndUnclaimed ? Colors.orange.withOpacity(0.3) : Colors.grey.shade100, 
-          width: 1.5,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: isClickable ? () => _claimQuest(context, ref, quest) : null,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isCompletedAndUnclaimed ? Colors.orange.withOpacity(0.3) : Colors.grey.shade100, 
+            width: 1.5,
+          ),
         ),
-      ),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: isClickable ? () => _claimQuest(context, ref, quest) : null,
         child: Row(
           children: [
             // Quest Icon Left

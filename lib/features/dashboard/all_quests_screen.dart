@@ -239,99 +239,103 @@ class _AllQuestsScreenState extends ConsumerState<AllQuestsScreen> {
   // Row Item for general Quests
   Widget _buildQuestRow(Quest quest, IconData leadingIcon, Color themeColor) {
     final isCompletedAndUnclaimed = quest.isCompleted && !quest.isClaimed;
+    const Color primaryGreen = Color(0xFF2E7D32);
 
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isCompletedAndUnclaimed ? Colors.orange.withOpacity(0.3) : Colors.grey.shade100, 
-          width: 1.5,
+    return GestureDetector(
+      onTap: isCompletedAndUnclaimed ? () => _claimQuestReward(quest) : null,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isCompletedAndUnclaimed ? Colors.orange.withOpacity(0.3) : Colors.grey.shade100, 
+            width: 1.5,
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          // Icon Left
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: quest.isClaimed ? Colors.grey.shade100 : const Color(0xFFE8F5E9),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              leadingIcon, 
-              color: quest.isClaimed ? Colors.grey.shade400 : themeColor, 
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-
-          // Quest details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  quest.title,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w900,
-                    decoration: quest.isClaimed ? TextDecoration.lineThrough : null,
-                    color: quest.isClaimed ? Colors.grey.shade400 : const Color(0xFF333333),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  quest.description,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: quest.isClaimed ? Colors.grey.shade400 : Colors.grey.shade500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-
-          // Reward text & Claim action
-          if (quest.isClaimed) ...[
-            Icon(Icons.check_circle_rounded, color: themeColor, size: 20)
-          ] else if (isCompletedAndUnclaimed) ...[
-            ElevatedButton(
-              onPressed: () => _claimQuestReward(quest),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        child: Row(
+          children: [
+            // Icon Left
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: quest.isClaimed ? Colors.grey.shade100 : const Color(0xFFE8F5E9),
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: const Text('กดรับ', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-            )
-          ] else ...[
-            // In progress progress details
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (quest.recurrence == 'weekly') ...[
+              child: Icon(
+                leadingIcon, 
+                color: quest.isClaimed ? Colors.grey.shade400 : themeColor, 
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+
+            // Quest details
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    '${quest.currentValue}/${quest.targetValue} ',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade600),
+                    quest.title,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      decoration: quest.isClaimed ? TextDecoration.lineThrough : null,
+                      color: quest.isClaimed ? Colors.grey.shade400 : const Color(0xFF333333),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    quest.description,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: quest.isClaimed ? Colors.grey.shade400 : Colors.grey.shade500,
+                    ),
                   ),
                 ],
-                Text(
-                  '+${quest.rewardPassXp} XP',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: themeColor),
-                ),
-              ],
+              ),
             ),
-            const SizedBox(width: 4),
-            const Icon(Icons.arrow_forward_ios_rounded, size: 10, color: Colors.grey),
+            const SizedBox(width: 8),
+
+            // Reward text & Claim action
+            if (quest.isClaimed) ...[
+              Icon(Icons.check_circle_rounded, color: themeColor, size: 20)
+            ] else if (isCompletedAndUnclaimed) ...[
+              ElevatedButton(
+                onPressed: () => _claimQuestReward(quest),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryGreen,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text('กดรับ', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+              )
+            ] else ...[
+              // In progress progress details
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (quest.recurrence == 'weekly') ...[
+                    Text(
+                      '${quest.currentValue}/${quest.targetValue} ',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade600),
+                    ),
+                  ],
+                  Text(
+                    '+${quest.rewardPassXp} XP',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: themeColor),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 4),
+              const Icon(Icons.arrow_forward_ios_rounded, size: 10, color: Colors.grey),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -340,19 +344,22 @@ class _AllQuestsScreenState extends ConsumerState<AllQuestsScreen> {
   Widget _buildSpecialQuestRow(Quest quest) {
     final isCompletedAndUnclaimed = quest.isCompleted && !quest.isClaimed;
     final isLocked = !quest.isCompleted && !quest.isClaimed;
+    const Color primaryGreen = Color(0xFF2E7D32);
 
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: isLocked ? const Color(0xFFFDFBF7) : Colors.white, // slight yellow for locked specials
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isLocked ? const Color(0xFFF7ECDF) : (isCompletedAndUnclaimed ? Colors.orange.withOpacity(0.3) : Colors.grey.shade100), 
-          width: 1.5,
+    return GestureDetector(
+      onTap: isCompletedAndUnclaimed ? () => _claimQuestReward(quest) : null,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: isLocked ? const Color(0xFFFDFBF7) : Colors.white, 
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isLocked ? const Color(0xFFF7ECDF) : (isCompletedAndUnclaimed ? Colors.orange.withOpacity(0.3) : Colors.grey.shade100), 
+            width: 1.5,
+          ),
         ),
-      ),
-      child: Row(
+        child: Row(
         children: [
           // Icon Left
           Container(
@@ -402,14 +409,14 @@ class _AllQuestsScreenState extends ConsumerState<AllQuestsScreen> {
             ElevatedButton(
               onPressed: () => _claimQuestReward(quest),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
+                backgroundColor: primaryGreen,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
-              child: const Text('กดรับ', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+              child: const Text('กดรับ', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
             )
           ] else ...[
             Text(
@@ -425,7 +432,7 @@ class _AllQuestsScreenState extends ConsumerState<AllQuestsScreen> {
           ],
         ],
       ),
-    );
+    ),);
   }
 
   Widget _buildResetNoticeBanner() {
