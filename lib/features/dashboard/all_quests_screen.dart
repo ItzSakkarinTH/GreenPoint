@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:greenpoint/core/providers/greenpass_provider.dart';
 import 'package:greenpoint/core/models/quest_model.dart';
+import 'package:greenpoint/core/models/pass_model.dart';
 import 'widgets/redeem_success_dialog.dart';
 
 class AllQuestsScreen extends ConsumerStatefulWidget {

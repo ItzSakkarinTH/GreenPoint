@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:greenpoint/core/providers/greenpass_provider.dart';
 import 'package:greenpoint/core/models/quest_model.dart';
+import 'package:greenpoint/core/models/pass_model.dart';
 import '../greenpass_screen.dart';
 import 'redeem_success_dialog.dart';
 
