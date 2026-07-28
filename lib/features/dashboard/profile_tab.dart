@@ -11,6 +11,7 @@ import 'streak_screen.dart';
 import 'achievements_screen.dart';
 import 'dashboard_screen.dart';
 import '../../core/providers/notification_provider.dart';
+import 'widgets/greenpass_card.dart';
 
 const Color primaryGreen = Color(0xFF2E7D32);
 const Color secondaryGreen = Color(0xFF4CAF50);
@@ -117,6 +118,10 @@ class ProfileTab extends ConsumerWidget {
             children: [
               // 1. Profile Card
               _buildProfileCard(context, ref, profile),
+              const SizedBox(height: 16),
+
+              // Green Pass Card
+              const GreenPassCard(),
               const SizedBox(height: 16),
 
               // 2. GreenPoint Mascot
