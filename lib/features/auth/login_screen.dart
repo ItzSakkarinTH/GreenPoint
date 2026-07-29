@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/shop_provider.dart';
 import 'register_screen.dart';
-import 'shop_register_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -261,34 +260,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'เป็นเจ้าของร้านค้า? ',
-                    style: TextStyle(color: Color(0xFF8D6E63)),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      final apiBaseUrl = ref.read(apiServiceProvider).baseUrl;
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ShopRegisterScreen(apiBaseUrl: apiBaseUrl),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      'ลงทะเบียนร้านค้าใหม่',
-                      style: TextStyle(
-                        color: Color(0xFF2E7D32),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              const SizedBox(height: 16),
             ],
           ),
         ),
