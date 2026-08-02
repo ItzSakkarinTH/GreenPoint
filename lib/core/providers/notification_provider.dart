@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'shop_provider.dart'; // To get apiServiceProvider
 
@@ -42,18 +43,39 @@ final notificationsProvider = NotifierProvider<NotificationsNotifier, List<Notif
 });
 
 class NotificationsNotifier extends Notifier<List<NotificationItem>> {
+  Timer? _timer;
+  bool _isFetching = false;
+
   @override
   List<NotificationItem> build() {
     loadNotifications();
+    
+    // Poll for new notifications in real-time every 8 seconds
+    _timer = Timer.periodic(const Duration(seconds: 8), (_) {
+      if (!_isFetching) {
+        loadNotifications();
+      }
+    });
+
+    // Cancel timer when the provider is disposed
+    ref.onDispose(() {
+      _timer?.cancel();
+    });
+
     return [];
   }
 
   Future<void> loadNotifications() async {
+    _isFetching = true;
     try {
       final apiService = ref.read(apiServiceProvider);
       final rawList = await apiService.getNotifications();
       state = rawList.map((e) => NotificationItem.fromJson(e)).toList();
-    } catch (_) {}
+    } catch (_) {
+      // Ignore background network errors
+    } finally {
+      _isFetching = false;
+    }
   }
 
   void markAllAsRead() {
